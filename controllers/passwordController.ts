@@ -17,7 +17,13 @@ export const get_verification_code = [
                 const user = await User.findOne({ email: email }).exec();
                 if (!user) throw new Error(`User with email ${email} not found`);
                 const code = await user.generateCode();
-                await sendMail(email, code);
+                const mailOptions: [string, string, string, string] = [
+                    email,
+                    'Verification code',
+                    `Your verification code is ${code}`,
+                    `<p>Please use this code: <strong style='color: red'>${code}</strong> to continue your password reset</p>`
+                ];
+                await sendMail(...mailOptions);
                 res.json({ msg: "Verification Code sent!!!" });
             } catch (err) {
                 return next(err)

@@ -83,8 +83,8 @@ export const authorizeJWT = (req: Request, res: Response, next: NextFunction) =>
 
 export const authorize_user = (req: RequestWithUser, res: Response, next: NextFunction): void | Response => {
     try {
-        const { isAdmin, tokenVersion } = req.user;
-        if (!isAdmin) throw new Error('User not authorized to access this resource');
+        const { isGroupAdmin, tokenVersion } = req.user;
+        if (!isGroupAdmin) throw new Error('User not authorized to access this resource');
         next();
     } catch (err) {
         if (err instanceof Error) {

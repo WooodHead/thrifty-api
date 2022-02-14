@@ -49,7 +49,7 @@ export const tokenGenerator = async (user: IUser): Promise<ITokens> => {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
-        isAdmin: user.isAdmin,
+        isGroupAdmin: user.isGroupAdmin,
         isMember: user.isMember,
         last_login: user.lastLogin,
         token_version: user.tokenVersion

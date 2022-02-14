@@ -18,6 +18,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   avatar: string;
+  amountSaved: number;
   isGroupAdmin: boolean;
   isMember: boolean;
   resetPassword: ResetPassword;

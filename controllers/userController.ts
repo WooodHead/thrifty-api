@@ -3,6 +3,7 @@ import { body, validationResult } from 'express-validator';
 import gravatar from 'gravatar';
 import { Request, Response, NextFunction } from 'express';
 import { RequestWithUser } from '@/interfaces/users.interface';
+import { sendMail } from '@utils/sendMail';
 
 export const get_get_user = async (req: RequestWithUser, res: Response) => {
     const { password, resetPassword, refreshToken, ...data } = req.user._doc;
@@ -31,6 +32,13 @@ export const post_create_user = [
                 avatar: avatar || img || ''
             });
             await user.save();
+            const mailOptions: [string, string, string, string] = [
+                email,
+                'Account Creation',
+                `Welcome to Esusu Confirm`,
+                `<p>Dear ${email.split('@')[0]}, Welcome to Esusu Confirm, we are excited to have you onboard</p>`
+            ];
+            await sendMail(...mailOptions);
             const { password, resetPassword, refreshToken, ...data } = user._doc;
             res.json(data);
         } catch (error) {
