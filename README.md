@@ -5,7 +5,16 @@
 * Lekan Adetunmbi
 
 ## About
-* This api is built with great consideration regarding security and measure are taken to prevent common attacks such as XSS and CSRF 
+* This api is built with great consideration regarding security and measure are taken to prevent common attacks such as XSS and CSRF
+
+## Stack
+
+* TypeScript
+* Express
+* MongoDB
+* Mongoose
+* Passport
+* JWT
 
 ## Available Routes:
 
@@ -32,3 +41,7 @@
 * Remove Member from Savings Group          PUT /api/savings_group/:id/remove_member'
 * Delete Savings Group                      DELETE /api/savings_group/:id/delete_savings_group'
 * Post Send Group Invitation                POST /api/savings_group/send_group_invitation
+
+### Endpoint 
+
+* View live demo of the application [here](https://esusu-confam.herokuapp.com/api)
