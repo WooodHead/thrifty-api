@@ -1,4 +1,4 @@
-# Esusu Confam Ltd - API
+# Esusu Confam Test - API
 
 ## Contributors
 
