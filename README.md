@@ -42,6 +42,8 @@
 * Delete Savings Group                                          DELETE /api/savings_group/:id/delete_savings_group'
 * Post Send Group Invitation                                    POST /api/savings_group/send_group_invitation
 
+### NOT COMPLETED YET
+
 ### Savings Group Transaction Routes
 * Put Add Savings Group Transaction                             PUT /api/savings_group/:id/add_savings
 

@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from "express";
 import { RequestWithUser } from "@interfaces/users.interface";
 import { formatGroupMembers, handleValidationErrors } from "@utils/lib";
 import { sendMail } from "@utils/sendMail";
+import User from "@/models/User";
 
 export const get_get_all_savings_group = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
@@ -97,19 +98,28 @@ export const put_add_savings_group_member = [
 
     async (req: RequestWithUser, res: Response, next: NextFunction) => {
 
-        // Check if group name exists
-        const found_group = await SavingsGroup.findById(req.params.id).exec();
-        if (!found_group) return res.status(404).json({ msg: 'Savings group not found' });
-
-        // Check if user is already a member of the group
-        const userId = new Types.ObjectId(req.user._id);
-        if (found_group.groupMembers.some(member => member.memberName.equals(userId))) return res.status(409).json({ msg: 'User already a member of the group' });
-
-        // Add member to group
         try {
+            // Check if group name exists
+            const found_group = await SavingsGroup.findById(req.params.id).exec();
+            if (!found_group) return res.status(404).json({ msg: 'Savings group not found' });
+
+            const user = await User.findById(req.user._id).exec();
+            if (!user) return res.status(404).json({ msg: "User not found" });
+
+            // Check if user is already a member of the group
+            const userId = new Types.ObjectId(req.user._id);
+            if (found_group.groupMembers.some(member => member.memberName.equals(userId))) return res.status(409).json({ msg: 'User already a member of the group' });
+
+            // Add user to group
             found_group.groupMembers = [...found_group.groupMembers, { memberName: userId, dateJoined: new Date(Date.now()) }];
             await found_group.save();
+
+            // Update user's group
+            user.savingsGroups = [...user.savingsGroups, { savingsGroup: new Types.ObjectId(req.params.id), amountSaved: 0 }];
+            await user.save();
+
             res.json({ msg: 'Member added to savings group' });
+
         } catch (error) {
             next(error);
         }
