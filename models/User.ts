@@ -12,10 +12,14 @@ const UserSchema = new Schema<IUser>({
     password: { type: String, required: true },
     avatar: { type: String, default: '' },
     lastLogin: { type: Date, default: new Date(Date.now()) },
-    amountSaved: { type: Number, default: 0 },
     isGroupAdmin: { type: Boolean, default: false },
     isMember: { type: Boolean, default: false },
-    savingsGroups: [{ type: Schema.Types.ObjectId, ref: 'SavingsGroup' }],
+    savingsGroups: [
+        {
+            savingsGroup: { type: Schema.Types.ObjectId, ref: 'SavingsGroup' },
+            amountSaved: { type: Number, default: 0 }
+        }
+    ],
     resetPassword: {
         code: { type: String, default: '' },
         expiresBy: { type: Date, default: '' }

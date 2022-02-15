@@ -12,20 +12,24 @@ interface RefreshToken {
   expiresBy: Date;
 }
 
+interface IUserGroupSavings {
+  savingsGroup: Types.ObjectId,
+  amountSaved: number
+}
+
 export interface IUser extends Document {
   _doc?: any;
   name: string;
   email: string;
   password: string;
   avatar: string;
-  amountSaved: number;
   isGroupAdmin: boolean;
   isMember: boolean;
   resetPassword: ResetPassword;
   refreshToken: RefreshToken;
   tokenVersion: number;
   lastLogin: Date;
-  savingsGroups: Types.ObjectId[];
+  savingsGroups: IUserGroupSavings[];
   generateCode: () => Promise<string>;
   generateTokens(usr: IUser): Promise<ITokens>;
   validateRefreshToken(req: Request): Promise<IValidate>;
