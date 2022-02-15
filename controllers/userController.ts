@@ -40,7 +40,7 @@ export const post_create_user = [
             ];
             await sendMail(...mailOptions);
             const { password, resetPassword, refreshToken, ...data } = user._doc;
-            res.json(data);
+            res.json({ message: 'User Created Successfully', user: data });
         } catch (error) {
             next(error)
         }

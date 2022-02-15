@@ -85,7 +85,7 @@ export const post_create_savings_group = [
                 groupMembers: groupMembers
             });
             await savingsGroup.save();
-            res.json(savingsGroup);
+            res.json({ message: 'Success, Savings Group Created', group: savingsGroup });
         } catch (error) {
             next(error);
         }
