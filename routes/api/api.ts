@@ -32,22 +32,22 @@ router.put('/user/reset_password', put_reset_password);
 
 // Savings Group Routes
 
-router.get('/savings_group/all', savingsGroup.get_get_all_savings_group);
+router.get('/savings_group/all', passport.authenticate('jwt', { session: false }), savingsGroup.get_get_all_savings_group);
 
-router.get('/savings_group/search', savingsGroup.get_search_savings_group);
+router.get('/savings_group/search', passport.authenticate('jwt', { session: false }), savingsGroup.get_search_savings_group);
 
-router.get('/savings_group/:id', savingsGroup.get_get_savings_group_by_id);
+router.get('/savings_group/:id', passport.authenticate('jwt', { session: false }), savingsGroup.get_get_savings_group_by_id);
 
-router.get('/savings_group/:id/members', savingsGroup.get_get_all_savings_group_members);
+router.get('/savings_group/:id/members', passport.authenticate('jwt', { session: false }), savingsGroup.get_get_all_savings_group_members);
 
-router.post('/savings_group/create', savingsGroup.post_create_savings_group);
+router.post('/savings_group/create', passport.authenticate('jwt', { session: false }), savingsGroup.post_create_savings_group);
 
-router.put('/savings_group/:id/add_member', savingsGroup.put_add_savings_group_member);
+router.put('/savings_group/:id/add_member', passport.authenticate('jwt', { session: false }), savingsGroup.put_add_savings_group_member);
 
-router.put('/savings_group/:id/remove_member', savingsGroup.put_remove_savings_group_member);
+router.put('/savings_group/:id/remove_member', passport.authenticate('jwt', { session: false }), savingsGroup.put_remove_savings_group_member);
 
-router.delete('/savings_group/:id/delete_savings_group', savingsGroup.delete_delete_savings_group);
+router.delete('/savings_group/:id/delete_savings_group', passport.authenticate('jwt', { session: false }), savingsGroup.delete_delete_savings_group);
 
-router.post('/send_group_invitation', savingsGroup.post_send_group_invitation);
+router.post('/send_group_invitation', passport.authenticate('jwt', { session: false }), savingsGroup.post_send_group_invitation);
 
 export default router;
