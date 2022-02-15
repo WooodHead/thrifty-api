@@ -107,9 +107,8 @@ export const put_add_savings_group_member = [
 
         // Add member to group
         try {
-            const { groupMembers } = req.body;
-            const { _id } = req.user;
-            await SavingsGroup.updateOne({ _id: found_group._id }, { $push: { groupMembers: groupMembers } }).exec();
+            found_group.groupMembers = [...found_group.groupMembers, { memberName: userId, dateJoined: new Date(Date.now()) }];
+            await found_group.save();
             res.json({ msg: 'Member added to savings group' });
         } catch (error) {
             next(error);
