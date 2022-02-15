@@ -5,6 +5,7 @@ import { get_verification_code, put_reset_password } from '@controllers/password
 import passport from 'passport';
 import { CustomIRouter } from '@interfaces/routes.interface';
 import * as savingsGroup from '@controllers/savingsGroupController';
+import { put_add_savings_to_group } from '@/controllers/savingsTransactionsController';
 
 const router: CustomIRouter = express.Router();
 
@@ -49,5 +50,9 @@ router.put('/savings_group/:id/remove_member', passport.authenticate('jwt', { se
 router.delete('/savings_group/:id/delete_savings_group', passport.authenticate('jwt', { session: false }), savingsGroup.delete_delete_savings_group);
 
 router.post('/send_group_invitation', passport.authenticate('jwt', { session: false }), savingsGroup.post_send_group_invitation);
+
+// Savings Routes
+
+router.put('/savings_group/:id/add_savings', passport.authenticate('jwt', { session: false }), put_add_savings_to_group);
 
 export default router;
