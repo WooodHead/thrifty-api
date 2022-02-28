@@ -1,4 +1,4 @@
-# Esusu Confam Test - API
+# Thrifty - API
 
 ## Contributors
 
