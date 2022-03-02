@@ -1,11 +1,11 @@
-import SavingsGroup from "@/models/SavingsGroup";
+import SavingsGroup from "@models/SavingsGroup";
 import { body } from "express-validator";
 import { Types } from "mongoose";
 import { Request, Response, NextFunction } from "express";
 import { RequestWithUser } from "@interfaces/users.interface";
 import { formatGroupMembers, handleValidationErrors } from "@utils/lib";
 import { sendMail } from "@utils/sendMail";
-import User from "@/models/User";
+import User from "@models/User";
 
 export const get_get_all_savings_group = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {

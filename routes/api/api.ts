@@ -5,11 +5,11 @@ import { get_verification_code, put_reset_password } from '@controllers/password
 import passport from 'passport';
 import { CustomIRouter } from '@interfaces/routes.interface';
 import * as savingsGroup from '@controllers/savingsGroupController';
-import { put_add_savings_to_group } from '@/controllers/savingsTransactionsController';
+import { put_add_savings_to_group } from '@controllers/savingsTransactionsController';
 
 const router: CustomIRouter = express.Router();
 
-router.get('/', (req, res) => { res.json({ msg: 'Not yet implemented!!!' }) });
+router.get('/', (req, res) => { res.json({ WELCOME: 'HELLO VISITOR, THANK YOU FOR STOPPING BY' }) });
 
 // Authentication Routes
 

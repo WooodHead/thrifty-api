@@ -2,7 +2,7 @@ import User from '@models/User';
 import { body, validationResult } from 'express-validator';
 import gravatar from 'gravatar';
 import { Request, Response, NextFunction } from 'express';
-import { RequestWithUser } from '@/interfaces/users.interface';
+import { RequestWithUser } from '@interfaces/users.interface';
 import { sendMail } from '@utils/sendMail';
 
 export const get_get_user = async (req: RequestWithUser, res: Response) => {

@@ -9,7 +9,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 
 import initDB from '@configs/database';
-import authConfig from '@configs/passport';
+import authConfig from '@middlewares/passport';
 import apiRouter from '@routes/api/api';
 import indexRouter from '@routes/index';
 

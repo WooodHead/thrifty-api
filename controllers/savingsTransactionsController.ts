@@ -1,7 +1,7 @@
 import User from "@models/User";
 import { body } from "express-validator";
 import { handleValidationErrors } from "@utils/lib";
-import { RequestWithUser } from "@/interfaces/users.interface";
+import { RequestWithUser } from "@interfaces/users.interface";
 import { Request, Response, NextFunction } from "express";
 import { Types } from "mongoose";
 

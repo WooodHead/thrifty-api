@@ -13,13 +13,14 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
+        "noEmitOnError": true,
         "typeRoots": [
             "./node_modules/@types",
             "./global.d.ts"
         ],
         "baseUrl": ".",
         "paths": {
-            "@/*": ["*"],
+            "@*": ["*"],
             "@global": ["global.d.ts"],
             "@configs/*": ["configs/*"],
             "@controllers/*": ["controllers/*"],
