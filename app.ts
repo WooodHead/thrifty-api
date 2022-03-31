@@ -22,7 +22,7 @@ initDB();
 authConfig(passport)
 
 const app = express();
-const whitelist = ['https://localhost:3000', 'https://www.pollaroid.net', 'https://mema.azurewebsites.net', 'https://mema.polldevs.com'];
+const whitelist = ['https://localhost:3000', 'https://api-thrifty.herokuapp.com'];
 const corsOptions: CorsOptions = {
     credentials: true,
     methods: ['GET', 'DELETE', 'OPTIONS', 'POST', 'PUT'],
@@ -46,7 +46,7 @@ app.use(helmet());
 app.use(compression());
 
 app.use('/', indexRouter);
-app.use('/api', apiRouter);
+app.use('/v1', apiRouter);
 
 // Handle 404 errors
 app.use((req: Request, res: Response, next) => {
