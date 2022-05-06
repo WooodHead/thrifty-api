@@ -1,8 +1,8 @@
 import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
 import { hash } from 'bcrypt';
 import { Exclude } from 'class-transformer';
-import { ParentEntity } from '../../utils/entities/parent.entity';
-import { UserToSavingsGroup } from '../../utils/entities/user-to-savingsgroup.entity';
+import { ParentEntity } from '../../common/entities/parent.entity';
+import { UserToSavingsGroup } from '../../common/entities/user-to-savingsgroup.entity';
 import { IRefreshToken, IResetPassword, Role } from '../interfaces/user.interface';
 import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
 
