@@ -1,7 +1,8 @@
-import { Entity, Column, BeforeInsert, OneToOne } from 'typeorm';
-import { ParentEntity } from 'src/utils/parent.entity';
+import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
 import { hash } from 'bcrypt';
 import { Exclude } from 'class-transformer';
+import { ParentEntity } from '../../utils/entities/parent.entity';
+import { UserToSavingsGroup } from '../../utils/entities/user-to-savingsgroup.entity';
 import { IRefreshToken, IResetPassword, Role } from '../interfaces/user.interface';
 import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
 
@@ -33,14 +34,19 @@ export class User extends ParentEntity {
     @Column({ type: "enum", enum: Role, default: Role.USER })
     role: Role;
 
-    @OneToOne(() => SavingsGroup, savingsGroup => savingsGroup.groupAdmin)
-    groupAdmin: SavingsGroup;
+    @OneToMany(() => SavingsGroup, (savingsGroup) => savingsGroup.groupAdmin)
+    groupAdmin: SavingsGroup[];
 
+    @ManyToMany(() => SavingsGroup, (savingsGroup) => savingsGroup.groupMembers)
+    groups: SavingsGroup[];
 
-    @Column({ type: "simple-json", nullable: true, default: {} })
+    @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.user)
+    public userToSavingsGroup!: UserToSavingsGroup[];
+
+    @Column({ type: "jsonb", nullable: true, default: {} })
     resetPassword: IResetPassword;
 
-    @Column({ type: "simple-json", nullable: true, default: {} })
+    @Column({ type: "jsonb", nullable: true, default: {} })
     refreshToken: IRefreshToken;
 
     @BeforeInsert()

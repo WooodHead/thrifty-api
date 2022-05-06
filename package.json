@@ -1,5 +1,5 @@
 {
-  "name": "inventory-app-api",
+  "name": "thrifty-api",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -25,6 +25,7 @@
     "typeorm:revert": "npm run typeorm migration:revert"
   },
   "dependencies": {
+    "@fastify/static": "^5.0.2",
     "@nestjs/common": "^8.4.4",
     "@nestjs/config": "^2.0.0",
     "@nestjs/core": "^8.4.4",

@@ -9,7 +9,7 @@ import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe }
 import { SwaggerCustomOptions } from './global'
 
 async function bootstrap() {
-  const whitelist = ['http://localhost:3000', 'https://inv-hub.herokuapp.com'];
+  const whitelist = ['http://localhost:3000', 'https://api-thrifty.herokuapp.com'];
   const corsOptions: CorsOptions = {
     credentials: true,
     methods: ['GET', 'DELETE', 'OPTIONS', 'PATCH', 'PUT'],
@@ -22,7 +22,12 @@ async function bootstrap() {
     },
   };
 
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(), { cors: corsOptions });
+  // const app = await NestFactory.create<NestFastifyApplication>(
+  //   AppModule,
+  //   new FastifyAdapter({ logger: true }),
+  //   { cors: corsOptions }
+  // );
+  const app = await NestFactory.create(AppModule, { cors: corsOptions });
   app.use(compression());
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({
@@ -60,7 +65,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api-docs', app, document, customOptions);
 
-  await app.listen(3000);
+  await app.listen(3000, '0.0.0.0');
+  console.log(`Application is running on: ${await app.getUrl()}`);
 };
 
 bootstrap();
