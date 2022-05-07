@@ -11,3 +11,4 @@ export interface SwaggerCustomOptions {
     url?: string;
     urls?: Record<'url' | 'name', string>[];
 }
+

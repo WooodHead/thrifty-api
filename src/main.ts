@@ -22,11 +22,8 @@ async function bootstrap() {
     },
   };
 
-  // const app = await NestFactory.create<NestFastifyApplication>(
-  //   AppModule,
-  //   new FastifyAdapter({ logger: true }),
-  //   { cors: corsOptions }
-  // );
+  // const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ logger: true }));
+  // const app = await NestFactory.create(AppModule);
   const app = await NestFactory.create(AppModule, { cors: corsOptions });
   app.use(compression());
   app.use(helmet());

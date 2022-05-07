@@ -9,12 +9,15 @@
 
 ## Tech Stack
 
-* TypeScript
-* Express
-* MongoDB
-* Mongoose
-* Passport-jwt
-* JsonWebToken
+* [NestJS](https://nestjs.com/)
+* [TypeScript](https://www.typescriptlang.org/)
+* [Postgres](https://www.postgresql.org/)
+* [TypeORM](https://typeorm.io/)
+* [Jest](https://jestjs.io/)
+* [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+* [Passportjs](https://www.npmjs.com/package/passport)
+* [Passport-local](https://www.npmjs.com/package/passport-local)
+* [Passport-jwt](https://www.npmjs.com/package/passport-jwt)
 
 ## Available Routes:
 

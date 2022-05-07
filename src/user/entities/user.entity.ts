@@ -1,13 +1,13 @@
 import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
 import { hash } from 'bcrypt';
 import { Exclude } from 'class-transformer';
-import { ParentEntity } from '../../common/entities/parent.entity';
+import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { UserToSavingsGroup } from '../../common/entities/user-to-savingsgroup.entity';
 import { IRefreshToken, IResetPassword, Role } from '../interfaces/user.interface';
 import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
 
 @Entity()
-export class User extends ParentEntity {
+export class User extends AbstractEntity {
 
     @Column('varchar', { length: 255, nullable: false })
     email: string;

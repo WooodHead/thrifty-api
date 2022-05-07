@@ -1,11 +1,11 @@
 import { Entity, Column, ManyToOne } from "typeorm";
-import { ParentEntity } from "./parent.entity";
+import { AbstractEntity } from "./abstract.entity";
 import { User } from "../../user/entities/user.entity";
 import { SavingsGroup } from "../../savings-group/entities/savings-group.entity";
 
 
 @Entity()
-export class UserToSavingsGroup extends ParentEntity {
+export class UserToSavingsGroup extends AbstractEntity {
 
     @Column()
     public userId!: string;

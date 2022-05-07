@@ -3,7 +3,7 @@ import { SavingsGroupService } from './savings-group.service';
 import { CreateSavingsGroupDto } from './dto/create-savings-group.dto';
 import { UpdateSavingsGroupDto } from './dto/update-savings-group.dto';
 
-@Controller('savings-group')
+@Controller('v1/savings-group')
 export class SavingsGroupController {
   constructor(private readonly savingsGroupService: SavingsGroupService) {}
 
