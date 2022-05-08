@@ -9,17 +9,24 @@ import { SavingsGroup } from '../../savings-group/entities/savings-group.entity'
 @Entity()
 export class User extends AbstractEntity {
 
-    @Column('varchar', { length: 255, nullable: false })
+    @Column('varchar', {
+        length: 255,
+        nullable: false,
+        unique: true
+    })
     email: string;
 
     @Exclude()
-    @Column('varchar', { length: 255, nullable: false })
+    @Column('varchar', {
+        length: 255,
+        nullable: false
+    })
     password: string;
 
-    @Column()
+    @Column('varchar')
     firstName: string;
 
-    @Column()
+    @Column('varchar')
     lastName: string;
 
     @Column({ nullable: true })
@@ -28,11 +35,18 @@ export class User extends AbstractEntity {
     @Column({ nullable: true })
     personalKey: string;
 
+    @Column('timestamp without time zone', { nullable: true })
+    lastLogin: Date;
+
     @Column({ default: true })
     isActive: boolean;
 
-    @Column({ type: "enum", enum: Role, default: Role.USER })
-    role: Role;
+    @Column('enum', {
+        enum: Role,
+        default: [Role.USER],
+        array: true
+    })
+    roles: Role[];
 
     @OneToMany(() => SavingsGroup, (savingsGroup) => savingsGroup.groupAdmin)
     groupAdmin: SavingsGroup[];

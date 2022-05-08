@@ -3,40 +3,70 @@ import { JwtService } from '@nestjs/jwt';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { compare } from 'bcrypt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UserService,
         private jwtService: JwtService,
+        @InjectRepository(User) private readonly usersRepository: Repository<User>,
     ) { }
 
-    async validateUser(email: string, pass: string): Promise<any> {
+    async validateUser(email: string, pass: string): Promise<User> {
         try {
             const user = await this.usersService.findOneByEmail(email);
+            if (!user) throw new UnauthorizedException('Invalid Credentials');
             const isPasswordMatched = await compare(pass, user.password);
             if (!isPasswordMatched) throw new UnauthorizedException('Invalid Credentials');
+            await this.usersRepository.update(user.id, { lastLogin: new Date() });
             return user;
         } catch (error) {
             throw new HttpException(error.message, error.status);
         }
     };
 
+    async validateJwt(sub: string): Promise<any> {
+        try {
+            const user = await this.usersRepository.findOne(sub);
+            if (user) {
+                const { refreshToken, resetPassword, ...data } = user;
+                return data;
+            }
+            throw new UnauthorizedException('Invalid Credentials');
+        } catch (error) {
+            throw new HttpException(error.message, error.status);
+        }
+    }
+
     async login(user: User) {
         try {
-            const payload = { 
+            const payload = {
                 sub: user.id,
-                email: user.email,  
-                firstName: user.firstName, 
-                lastName: user.lastName,
-                role: user.role, 
-                isActive: user.isActive, 
+                email: user.email,
+                name: user.firstName + ' ' + user.lastName,
+                lastLogin: user.lastLogin,
+                roles: user.roles,
+                isActive: user.isActive,
             };
             return {
-                access_token: this.jwtService.sign(payload),
+                message: 'Login Successful',
+                authToken: this.jwtService.sign(payload),
             };
         } catch (error) {
-            throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
+            throw new HttpException(error.message, error.status ?? HttpStatus.BAD_REQUEST)
+        }
+    }
+
+    async logout(user: User) {
+        try {
+            // await this.usersRepository.update(user.id, { lastLogout: new Date() });
+            return {
+                message: 'Logout Successful',
+            }
+        } catch (error) {
+            throw new HttpException(error.message, error.status ?? HttpStatus.BAD_REQUEST)
         }
     }
 }

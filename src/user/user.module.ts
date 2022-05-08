@@ -11,7 +11,7 @@ import { User } from './entities/user.entity';
   providers: [UserService],
   controllers: [UserController]
 })
-export class UserModule { 
+export class UserModule {
   constructor(private readonly adminSite: DefaultAdminSite) {
     this.adminSite.register('User', User);
   }

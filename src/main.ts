@@ -2,6 +2,8 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import * as compression from 'compression';
+import * as cookieParser from 'cookie-parser';
+import * as csurf from 'csurf';
 import helmet from 'helmet';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
@@ -26,10 +28,14 @@ async function bootstrap() {
   // const app = await NestFactory.create(AppModule);
   const app = await NestFactory.create(AppModule, { cors: corsOptions });
   app.use(compression());
+  app.use(cookieParser());
+  // app.use(csurf());
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
-    forbidNonWhitelisted: true
+    transform: true,
+    forbidNonWhitelisted: true,
+    forbidUnknownValues: true,
   }));
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 

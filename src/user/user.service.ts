@@ -22,11 +22,12 @@ export class UserService {
         }
     };
 
-    async findOneById(id: string): Promise<User> {
+    async findOneById(id: string): Promise<any> {
         try {
             const foundUser = await this.usersRepository.findOne(id);
             if (!foundUser) throw new NotFoundException(`User with id: ${id} does not exist on this server`);
-            return foundUser;
+            const { refreshToken, resetPassword, ...data } = foundUser;
+            return data;
         } catch (error) {
             console.error(error.message)
             throw new HttpException(error.message, error.status);

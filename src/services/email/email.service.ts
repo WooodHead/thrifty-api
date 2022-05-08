@@ -4,7 +4,7 @@ import sgMail, { ResponseError } from '@sendgrid/mail';
 import { MailDataRequired } from '@sendgrid/helpers/classes/mail';
 
 @Injectable()
-export class EmailApiService {
+export class EmailService {
     constructor(private readonly configService: ConfigService) { }
 
     async sendEmail(email: string, subject: string, message: string, content: string): Promise<boolean> {
