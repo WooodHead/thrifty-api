@@ -14,8 +14,10 @@ export class UserService {
     async findOneByEmail(email: string): Promise<User> {
         try {
             const foundUser = await this.usersRepository.findOne({ email });
-            if (!foundUser) throw new UnauthorizedException('Invalid Credentials');
-            return foundUser;
+            if (foundUser) {
+                return foundUser;
+            };
+            throw new UnauthorizedException('Invalid Credentials');
         } catch (error) {
             console.error(error)
             throw new HttpException(error.message, error.status);
@@ -25,9 +27,11 @@ export class UserService {
     async findOneById(id: string): Promise<any> {
         try {
             const foundUser = await this.usersRepository.findOne(id);
-            if (!foundUser) throw new NotFoundException(`User with id: ${id} does not exist on this server`);
-            const { refreshToken, resetPassword, ...data } = foundUser;
-            return data;
+            if (foundUser) {
+                const { refreshToken, resetPassword, password, personalKey, ...data } = foundUser;
+                return data;
+            };
+            throw new NotFoundException(`User with id: ${id} does not exist on this server`);
         } catch (error) {
             console.error(error.message)
             throw new HttpException(error.message, error.status);

@@ -8,7 +8,10 @@ import helmet from 'helmet';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
 import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
-import { SwaggerCustomOptions } from './global'
+import { SwaggerCustomOptions } from './global';
+import { ConfigService } from '@nestjs/config';
+import configuration from './config/configuration';
+const configService = new ConfigService(configuration);
 
 async function bootstrap() {
   const whitelist = ['http://localhost:3000', 'https://api-thrifty.herokuapp.com'];
@@ -28,7 +31,7 @@ async function bootstrap() {
   // const app = await NestFactory.create(AppModule);
   const app = await NestFactory.create(AppModule, { cors: corsOptions });
   app.use(compression());
-  app.use(cookieParser());
+  app.use(cookieParser(configService.get('COOKIE_SECRET')));
   // app.use(csurf());
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({

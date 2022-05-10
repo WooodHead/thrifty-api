@@ -1,16 +1,20 @@
 import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { compare } from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UserService,
         private jwtService: JwtService,
+        private readonly configService: ConfigService,
         @InjectRepository(User) private readonly usersRepository: Repository<User>,
     ) { }
 
@@ -50,23 +54,47 @@ export class AuthService {
                 roles: user.roles,
                 isActive: user.isActive,
             };
-            return {
-                message: 'Login Successful',
-                authToken: this.jwtService.sign(payload),
-            };
+
+            const token = this.jwtService.sign(payload);
+            const refreshToken = sign(
+                payload,
+                {
+                    key: this.configService.get<string>('REFRESH_TOKEN_PRIVATE_KEY'),
+                    passphrase: this.configService.get<string>('REFRESH_TOKEN_SECRET')
+                },
+                {
+                    algorithm: 'RS256',
+                    expiresIn: '7d'
+                }
+            );
+            return { token, refreshToken };
         } catch (error) {
-            throw new HttpException(error.message, error.status ?? HttpStatus.BAD_REQUEST)
+            console.error(error);
+            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 
     async logout(user: User) {
         try {
-            // await this.usersRepository.update(user.id, { lastLogout: new Date() });
-            return {
-                message: 'Logout Successful',
-            }
+            const personalKey = randomBytes(32).toString('hex');
+            await this.usersRepository.update(user.id, { personalKey });
         } catch (error) {
-            throw new HttpException(error.message, error.status ?? HttpStatus.BAD_REQUEST)
+            console.error(error);
+            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+        }
+    }
+
+    async validateRefreshToken(token: string): Promise<any> {
+        try {
+            const decoded = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
+            const user = await this.usersRepository.findOne(decoded.sub);
+            if (user) {
+                return await this.login(user);
+            }
+            throw new UnauthorizedException('Invalid Credentials');
+        } catch (error) {
+            console.error(error);
+            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
 }
