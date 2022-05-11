@@ -1,9 +1,10 @@
 import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
-import { hash } from 'bcrypt';
+import { compare, hash } from 'bcrypt';
+import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { UserToSavingsGroup } from '../../common/entities/user-to-savingsgroup.entity';
-import { IRefreshToken, IResetPassword, Role } from '../interfaces/user.interface';
+import { IResetPassword, Role } from '../interfaces/user.interface';
 import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
 
 @Entity()
@@ -32,9 +33,6 @@ export class User extends AbstractEntity {
     @Column({ nullable: true })
     avatar: string;
 
-    @Column({ nullable: true })
-    personalKey: string;
-
     @Column('timestamp without time zone', { nullable: true })
     lastLogin: Date;
 
@@ -57,14 +55,35 @@ export class User extends AbstractEntity {
     @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.user)
     public userToSavingsGroup!: UserToSavingsGroup[];
 
-    @Column({ type: "jsonb", nullable: true, default: {} })
+    @Column('jsonb', {nullable: true, default: {} })
     resetPassword: IResetPassword;
 
-    @Column({ type: "jsonb", nullable: true, default: {} })
-    refreshToken: IRefreshToken;
+    @Column('varchar', { nullable: true })
+    refreshToken: string;
+
+    @Column('varchar', { nullable: true })
+    personalKey: string;
 
     @BeforeInsert()
     async hashPassword() {
         this.password = await hash(this.password, 10);
+    }
+
+    public async isPasswordValid(password: string): Promise<boolean> {
+        return await compare(password, this.password);
+    }
+    
+    public async updateRefreshToken(personalKey: string, refreshToken: string): Promise<void> {
+        this.personalKey = personalKey;
+        this.refreshToken = refreshToken;
+        await this.save();
+    }
+
+    public async generatePersonalKey(): Promise<string> {
+        return randomBytes(32).toString('hex');
+    }
+
+    public async validatePersonalKey(personalKey: string): Promise<boolean> {
+        return this.personalKey === personalKey;
     }
 }

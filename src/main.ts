@@ -1,9 +1,9 @@
 import { NestFactory, Reflector } from '@nestjs/core';
-import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+// import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
-import * as csurf from 'csurf';
+// import * as csurf from 'csurf';
 import helmet from 'helmet';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
@@ -17,7 +17,7 @@ async function bootstrap() {
   const whitelist = ['http://localhost:3000', 'https://api-thrifty.herokuapp.com'];
   const corsOptions: CorsOptions = {
     credentials: true,
-    methods: ['GET', 'DELETE', 'OPTIONS', 'PATCH', 'PUT'],
+    methods: ['GET', 'DELETE', 'OPTIONS', 'PATCH', 'POST', 'PUT'],
     origin: (requestOrigin: string, callback) => {
       if (whitelist.indexOf(requestOrigin) !== -1 || !requestOrigin) {
         callback(null, true);
@@ -32,7 +32,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: corsOptions });
   app.use(compression());
   app.use(cookieParser(configService.get('COOKIE_SECRET')));
-  // app.use(csurf());
+  // app.use(csurf({
+  //   cookie: {
+  //     signed: false,
+  //     httpOnly: true,
+  //     secure: false,
+  //     sameSite: 'lax',
+  //   }
+  // }));
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,

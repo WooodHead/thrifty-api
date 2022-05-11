@@ -23,6 +23,7 @@ export class AuthController {
         const { token, refreshToken } = await this.authService.login(user);
         res.cookie('jit', refreshToken, cookieOptions);
         return {
+            statusCode: 200,
             message: 'Login Successful',
             authToken: token,
         };
@@ -42,6 +43,12 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         const { jit } = req.signedCookies;
-        await this.authService.validateRefreshToken(jit);
+        const { token, refreshToken } = await this.authService.validateRefreshToken(jit);
+        res.cookie('jit', refreshToken, cookieOptions);
+        return {
+            statusCode: 200,
+            message: 'Token Refresh Successful',
+            authToken: token,
+        };
     }
 }

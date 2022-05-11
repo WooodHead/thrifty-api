@@ -1,13 +1,11 @@
-import { HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
-import { compare } from 'bcrypt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { randomBytes } from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -21,11 +19,11 @@ export class AuthService {
     async validateUser(email: string, pass: string): Promise<User> {
         try {
             const user = await this.usersService.findOneByEmail(email);
-            if (!user) throw new UnauthorizedException('Invalid Credentials');
-            const isPasswordMatched = await compare(pass, user.password);
-            if (!isPasswordMatched) throw new UnauthorizedException('Invalid Credentials');
-            await this.usersRepository.update(user.id, { lastLogin: new Date() });
-            return user;
+            if (user && await user.isPasswordValid(pass)) {
+                await this.usersRepository.update(user.id, { lastLogin: new Date() });
+                return user;
+            };
+            throw new UnauthorizedException('Invalid Credentials');
         } catch (error) {
             throw new HttpException(error.message, error.status);
         }
@@ -46,6 +44,7 @@ export class AuthService {
 
     async login(user: User) {
         try {
+            const personalKey = await user.generatePersonalKey();
             const payload = {
                 sub: user.id,
                 email: user.email,
@@ -53,6 +52,7 @@ export class AuthService {
                 lastLogin: user.lastLogin,
                 roles: user.roles,
                 isActive: user.isActive,
+                rtk: personalKey,
             };
 
             const token = this.jwtService.sign(payload);
@@ -67,6 +67,7 @@ export class AuthService {
                     expiresIn: '7d'
                 }
             );
+            await user.updateRefreshToken(personalKey, refreshToken);
             return { token, refreshToken };
         } catch (error) {
             console.error(error);
@@ -76,7 +77,7 @@ export class AuthService {
 
     async logout(user: User) {
         try {
-            const personalKey = randomBytes(32).toString('hex');
+            const personalKey = await user.generatePersonalKey();
             await this.usersRepository.update(user.id, { personalKey });
         } catch (error) {
             console.error(error);
@@ -86,12 +87,13 @@ export class AuthService {
 
     async validateRefreshToken(token: string): Promise<any> {
         try {
+            if (!token) throw new BadRequestException('Refresh Token cannot be empty');
             const decoded = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
             const user = await this.usersRepository.findOne(decoded.sub);
-            if (user) {
+            if (user && user.validatePersonalKey(decoded.rtk)) {
                 return await this.login(user);
-            }
-            throw new UnauthorizedException('Invalid Credentials');
+            };
+            throw new UnauthorizedException('Invalid Refresh Token, Please initiate a new login request');
         } catch (error) {
             console.error(error);
             throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
