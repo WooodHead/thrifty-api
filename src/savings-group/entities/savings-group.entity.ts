@@ -10,6 +10,9 @@ export class SavingsGroup extends AbstractEntity {
     @Column()
     groupName: string;
 
+    @Column({ type: "enum", enum: GroupType, default: GroupType.PUBLIC })
+    groupType: GroupType;
+
     @ManyToOne(() => User, (user) => user.groupAdmin, { eager: true })
     groupAdmin: User;
 
@@ -20,6 +23,4 @@ export class SavingsGroup extends AbstractEntity {
     @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.savingsGroup)
     public userToSavingsGroup!: UserToSavingsGroup[];
 
-    @Column({ type: "enum", enum: GroupType, default: GroupType.PUBLIC })
-    groupType: GroupType;
 }
