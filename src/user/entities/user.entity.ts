@@ -55,7 +55,7 @@ export class User extends AbstractEntity {
     @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.user)
     public userToSavingsGroup!: UserToSavingsGroup[];
 
-    @Column('jsonb', {nullable: true, default: {} })
+    @Column('jsonb', { nullable: true, default: {} })
     resetPassword: IResetPassword;
 
     @Column('varchar', { nullable: true })
@@ -69,10 +69,14 @@ export class User extends AbstractEntity {
         this.password = await hash(this.password, 10);
     }
 
+    async hashPasswordBeforeUpdate(password: string) {
+        return await hash(password, 10);
+    }
+
     public async isPasswordValid(password: string): Promise<boolean> {
         return await compare(password, this.password);
     }
-    
+
     public async updateRefreshToken(personalKey: string, refreshToken: string): Promise<void> {
         this.personalKey = personalKey;
         this.refreshToken = refreshToken;
@@ -85,5 +89,19 @@ export class User extends AbstractEntity {
 
     public async validatePersonalKey(personalKey: string): Promise<boolean> {
         return this.personalKey === personalKey;
+    }
+
+    public async generatePasswordResetCode(): Promise<string> {
+        const code = randomBytes(3).toString('hex').toUpperCase();
+        this.resetPassword.code = await hash(code, 10);
+        this.resetPassword.expiresBy = new Date(Date.now() + 300000);
+        this.save();
+        return code;
+    }
+
+    public async verifyPasswordResetCode(code: string): Promise<boolean> {
+        const validCode = await compare(code, this.resetPassword.code);
+        const codeNotExpired = (Date.now() - new Date(this.resetPassword.expiresBy).getTime()) < 300000;
+        return validCode && codeNotExpired;
     }
 }
