@@ -1,4 +1,4 @@
-import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, Column, BeforeInsert, OneToMany } from 'typeorm';
 import { compare, hash } from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
@@ -6,6 +6,8 @@ import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { UserToSavingsGroup } from '../../common/entities/user-to-savingsgroup.entity';
 import { IResetPassword, Role } from '../interfaces/user.interface';
 import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
+import { Account } from '../../account/entities/account.entity';
+import { Transaction } from '../../transaction/entities/transaction.entity';
 
 @Entity()
 export class User extends AbstractEntity {
@@ -49,11 +51,14 @@ export class User extends AbstractEntity {
     @OneToMany(() => SavingsGroup, (savingsGroup) => savingsGroup.groupAdmin)
     groupAdmin: SavingsGroup[];
 
-    @ManyToMany(() => SavingsGroup, (savingsGroup) => savingsGroup.groupMembers)
-    groups: SavingsGroup[];
-
     @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.user)
-    public userToSavingsGroup!: UserToSavingsGroup[];
+    public savingsGroups!: UserToSavingsGroup[];
+
+    @OneToMany(() => Account, account => account.user)
+    accounts: Account[];
+    
+    @OneToMany(() => Transaction, (transaction) => transaction.user)
+    transactions: Transaction[];
 
     @Column('jsonb', { nullable: true, default: {} })
     resetPassword: IResetPassword;

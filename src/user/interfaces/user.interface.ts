@@ -1,8 +1,9 @@
 export enum Role {
-    GUEST = 'guest',
-    USER = 'user',
-    ADMIN = 'admin',
-    SUPER_ADMIN = 'super_admin',
+    ADMIN = 'ADMIN',
+    GUEST = 'GUEST',
+    SUPER_ADMIN = 'SUPER_ADMIN',
+    SYSTEM_ADMIN = 'SYSTEM_ADMIN',
+    USER = 'USER',
 };
 
 export interface IResetPassword {

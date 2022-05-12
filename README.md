@@ -1,11 +1,16 @@
 # Thrifty - API
 
-## Contributors
+## Authors
 
-* Lekan Adetunmbi
+- [@greazleay](https://www.github.com/greazleay)
 
 ## About
-* This api is built with great consideration regarding security and measure are taken to prevent common attacks such as XSS and CSRF
+This is a fictional financial institution which offers traditonal financial services and some other value-added services. New customers can open a new account while an existing account holder can perform the following:
+
+* Open multiple accounts
+* Check their account balance
+* Withdraw money from their account
+* Close their account
 
 ## Tech Stack
 
@@ -13,11 +18,9 @@
 * [TypeScript](https://www.typescriptlang.org/)
 * [Postgres](https://www.postgresql.org/)
 * [TypeORM](https://typeorm.io/)
-* [Jest](https://jestjs.io/)
+* [Passportjs](https://www.passportjs.org/)
 * [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
-* [Passportjs](https://www.npmjs.com/package/passport)
-* [Passport-local](https://www.npmjs.com/package/passport-local)
-* [Passport-jwt](https://www.npmjs.com/package/passport-jwt)
+* [Jest](https://jestjs.io/)
 
 ## Available Routes:
 

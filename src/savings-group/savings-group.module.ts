@@ -4,9 +4,11 @@ import { DefaultAdminModule, DefaultAdminSite } from 'nestjs-admin';
 import { SavingsGroupService } from './savings-group.service';
 import { SavingsGroupController } from './savings-group.controller';
 import { SavingsGroup } from './entities/savings-group.entity';
+import { UserModule } from '../user/user.module';
+import { UserToSavingsGroup } from '../common/entities/user-to-savingsgroup.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SavingsGroup]), DefaultAdminModule],
+  imports: [TypeOrmModule.forFeature([SavingsGroup, UserToSavingsGroup]), DefaultAdminModule, UserModule],
   controllers: [SavingsGroupController],
   providers: [SavingsGroupService]
 })

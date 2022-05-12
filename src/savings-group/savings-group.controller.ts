@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Put, HttpCode } from '@nestjs/common';
 import { PaginateQuery } from 'nestjs-paginate';
 import { SavingsGroupService } from './savings-group.service';
 import { CreateSavingsGroupDto } from './dto/create-savings-group.dto';
@@ -8,6 +8,7 @@ import { RoleGuard } from '../auth/guards/roles.guard';
 import { Role } from '../user/interfaces/user.interface';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
+import { UpdateGroupMemberDto } from './dto/savings-group.dto';
 
 @Controller('v1/savings-group')
 export class SavingsGroupController {
@@ -19,7 +20,18 @@ export class SavingsGroupController {
     return this.savingsGroupService.create(createSavingsGroupDto, user);
   }
 
-  @Get()
+  @Patch('add-group-member')
+  // @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  async addSavingsGroupMember(@Body() addMemberDto: UpdateGroupMemberDto) {
+    return await this.savingsGroupService.addSavingsGroupMember(addMemberDto);
+  }
+
+  @Patch('remove-group-member')
+  async removeGroupMember(@Body() removeMemberDto: UpdateGroupMemberDto) {
+    return await this.savingsGroupService.removeSavingsGroupMember(removeMemberDto);
+  }
+
+  @Get('all')
   async findAll(@Query() query: PaginateQuery) {
     return await this.savingsGroupService.findAll(query);
   }

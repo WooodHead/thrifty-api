@@ -7,20 +7,19 @@ import { GroupType } from '../interfaces/savings-group.interface';
 @Entity()
 export class SavingsGroup extends AbstractEntity {
 
-    @Column()
+    @Column('varchar')
     groupName: string;
 
-    @Column({ type: "enum", enum: GroupType, default: GroupType.PUBLIC })
+    @Column('enum', { enum: GroupType, default: GroupType.PUBLIC })
     groupType: GroupType;
 
-    @ManyToOne(() => User, (user) => user.groupAdmin, { eager: true })
+    @Column('varchar', { nullable: true, length: 255 })
+    groupDescription: string;
+
+    @ManyToOne(() => User, (user) => user.groupAdmin)
     groupAdmin: User;
 
-    @ManyToMany(() => User, (user) => user.groups, { eager: true })
-    @JoinTable()
-    groupMembers: User[];
-
     @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.savingsGroup)
-    public userToSavingsGroup!: UserToSavingsGroup[];
+    public groupMembers!: UserToSavingsGroup[];
 
 }

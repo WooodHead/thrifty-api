@@ -1,24 +1,28 @@
-import { Entity, Column, ManyToOne } from "typeorm";
-import { AbstractEntity } from "./abstract.entity";
-import { User } from "../../user/entities/user.entity";
-import { SavingsGroup } from "../../savings-group/entities/savings-group.entity";
-
+import { Entity, Column, ManyToOne, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { User } from '../../user/entities/user.entity';
+import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity()
-export class UserToSavingsGroup extends AbstractEntity {
+export class UserToSavingsGroup {
+
+    @Exclude()
+    @PrimaryGeneratedColumn('uuid')
+    public userToSavingsGroupId!: string;
 
     @Column()
     public userId!: string;
 
+    @Exclude()
     @Column()
     public savingsGroupId!: string;
 
-    @Column()
-    public dateAdded!: Date
+    @CreateDateColumn()
+    public dateAdded!: Date;
 
-    @ManyToOne(() => User, (user) => user.userToSavingsGroup)
+    @ManyToOne(() => User, (user) => user.savingsGroups, { onDelete: 'CASCADE' })
     public user!: User
 
-    @ManyToOne(() => SavingsGroup, (savingsGroup) => savingsGroup.userToSavingsGroup)
+    @ManyToOne(() => SavingsGroup, (savingsGroup) => savingsGroup.groupMembers, { onDelete: 'CASCADE' })
     public savingsGroup!: SavingsGroup
 }
