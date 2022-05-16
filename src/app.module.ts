@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { DefaultAdminModule } from 'nestjs-admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection, getConnectionOptions } from 'typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FirebaseModule } from 'nestjs-firebase';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -13,6 +14,8 @@ import { TransactionModule } from './transaction/transaction.module';
 import configuration from './config/configuration';
 // import { APP_GUARD } from '@nestjs/core';
 // import { RolesGuard } from './auth/guards/roles.guard';
+
+const configService = new ConfigService(configuration);
 
 @Module({
   imports: [
@@ -27,6 +30,13 @@ import configuration from './config/configuration';
           autoLoadEntities: true,
           useUnifiedTopology: true,
         }),
+    }),
+    FirebaseModule.forRoot({
+      googleApplicationCredential: {
+        projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
+        clientEmail: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
+        privateKey: configService.get<string>('FIREBASE_PRIVATE_KEY'),
+      },
     }),
     AuthModule,
     DefaultAdminModule,
