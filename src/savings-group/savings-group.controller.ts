@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Put, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PaginateQuery } from 'nestjs-paginate';
 import { SavingsGroupService } from './savings-group.service';
 import { CreateSavingsGroupDto } from './dto/create-savings-group.dto';
@@ -10,10 +11,12 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
 import { UpdateGroupMemberDto } from './dto/savings-group.dto';
 
+@ApiTags('Savings Group')
 @Controller('v1/savings-group')
 export class SavingsGroupController {
   constructor(private readonly savingsGroupService: SavingsGroupService) {}
 
+  @ApiBearerAuth('JWT')
   @Post('create')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   create(@Body() createSavingsGroupDto: CreateSavingsGroupDto, @UserDecorator() user: User) {

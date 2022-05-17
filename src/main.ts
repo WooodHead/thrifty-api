@@ -53,10 +53,10 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .addBasicAuth()
     .addBearerAuth()
-    .setTitle('Inventory App API')
-    .setDescription('A simple API for managing inventory')
+    .setTitle('Thrifty API')
+    .setDescription('A fictional financial services provider which offers traditonal financial services and some other value-added services')
     .setVersion('1.0')
-    .addTag('inventory')
+    .addTag('Thrifty')
     .build();
 
   const options: SwaggerDocumentOptions = {
@@ -67,7 +67,7 @@ async function bootstrap() {
   };
 
   const customOptions: SwaggerCustomOptions = {
-    customSiteTitle: 'Inventory App API Docs',
+    customSiteTitle: 'Thrifty API Docs',
     customfavIcon: '',
     customCss: '.swagger-ui .topbar { display: none }',
     swaggerOptions: {

@@ -5,7 +5,7 @@
 - [@greazleay](https://www.github.com/greazleay)
 
 ## About
-This is a fictional financial institution which offers traditonal financial services and some other value-added services. New customers can open a new account while an existing account holder can perform the following:
+This is a fictional financial services provider which offers traditonal financial services and some other value-added services. New customers can open a new account while an existing account holder can perform the following:
 
 * Open multiple accounts
 * Check their account balance

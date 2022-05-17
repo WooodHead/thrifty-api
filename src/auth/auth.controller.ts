@@ -1,5 +1,5 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiBasicAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -9,7 +9,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
 
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('/v1/auth')
 export class AuthController {
 
@@ -29,6 +29,7 @@ export class AuthController {
         };
     }
 
+    @ApiBearerAuth('JWT')
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     @HttpCode(200)
@@ -38,9 +39,9 @@ export class AuthController {
         return { message: 'Logout Successful' };
     }
 
+    @ApiCookieAuth('JWT')
     @Post('refresh-token')
     @HttpCode(200)
-    @UseGuards(JwtAuthGuard)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         const { jit } = req.signedCookies;
         const { token, refreshToken } = await this.authService.validateRefreshToken(jit);
