@@ -53,6 +53,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .addBasicAuth()
     .addBearerAuth()
+    .addCookieAuth('AuthCookie', { type: 'http', name: 'jit', in: 'signedCookies' })
     .setTitle('Thrifty API')
     .setDescription('A fictional financial services provider which offers traditonal financial services and some other value-added services')
     .setVersion('1.0')
@@ -68,7 +69,7 @@ async function bootstrap() {
 
   const customOptions: SwaggerCustomOptions = {
     customSiteTitle: 'Thrifty API Docs',
-    customfavIcon: '',
+    customfavIcon: 'NONE',
     customCss: '.swagger-ui .topbar { display: none }',
     swaggerOptions: {
       persistAuthorization: true

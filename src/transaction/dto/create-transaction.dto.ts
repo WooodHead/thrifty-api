@@ -46,6 +46,10 @@ export class CreateTransactionDto {
 
   @ApiProperty()
   @IsOptional()
+  transactionDate: Date;
+
+  @ApiProperty()
+  @IsOptional()
   @IsString()
   transactionRef: string;
 }

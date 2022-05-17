@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, BeforeInsert } from 'typeorm';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { User } from '../../user/entities/user.entity';
 import { Account } from '../../account/entities/account.entity';
@@ -45,5 +45,10 @@ export class Transaction extends AbstractEntity {
 
   @Column('varchar', { length: 255, nullable: true })
   transactionRef: string;
+
+  @BeforeInsert()
+  addTransactionRef () {
+    this.transactionRef = `${this.transactionType}-${this.transactionMode}-${this.transactionDate.getTime()}`;
+  }
 
 }

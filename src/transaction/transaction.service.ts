@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  HttpStatus,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, Injectable, HttpStatus, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Equal, Between, Repository } from 'typeorm';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
@@ -17,14 +12,12 @@ export class TransactionService {
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
-  ) {}
+  ) { }
 
-  async create(
-    createTransactionDto: CreateTransactionDto,
-  ): Promise<Transaction> {
+  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
     try {
-      const newTransaction =
-        this.transactionRepository.create(createTransactionDto);
+      createTransactionDto.transactionDate = new Date(Date.now());
+      const newTransaction = this.transactionRepository.create(createTransactionDto);
       await this.transactionRepository.save(newTransaction);
       return newTransaction;
     } catch (error) {
@@ -68,10 +61,7 @@ export class TransactionService {
     }
   }
 
-  async findByDate(
-    searchDate: Date,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByDate(searchDate: Date, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
@@ -87,10 +77,7 @@ export class TransactionService {
     }
   }
 
-  async findByDateRange(
-    dateRangeDto: TransactionDateRangeDto,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByDateRange(dateRangeDto: TransactionDateRangeDto, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       const { fromDate, toDate } = dateRangeDto;
       return await paginate(query, this.transactionRepository, {
@@ -107,10 +94,7 @@ export class TransactionService {
     }
   }
 
-  async findByUser(
-    userId: string,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByUser(userId: string, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
@@ -126,11 +110,7 @@ export class TransactionService {
     }
   }
 
-  async findByUserAndDate(
-    userId: string,
-    searchDate: Date,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByUserAndDate(userId: string, searchDate: Date, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
@@ -146,11 +126,7 @@ export class TransactionService {
     }
   }
 
-  async findByUserAndDateRange(
-    userId: string,
-    DateRangeDto: TransactionDateRangeDto,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByUserAndDateRange(userId: string, DateRangeDto: TransactionDateRangeDto, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       const { fromDate, toDate } = DateRangeDto;
       return await paginate(query, this.transactionRepository, {
@@ -167,10 +143,7 @@ export class TransactionService {
     }
   }
 
-  async findByAccount(
-    accountId: string,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByAccount(accountId: string, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
@@ -186,11 +159,7 @@ export class TransactionService {
     }
   }
 
-  async findByAccountAndDate(
-    accountId: string,
-    searchDate: Date,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByAccountAndDate(accountId: string, searchDate: Date, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
@@ -206,11 +175,7 @@ export class TransactionService {
     }
   }
 
-  async findByAccountAndDateRange(
-    accountId: string,
-    DateRangeDto: TransactionDateRangeDto,
-    query: PaginateQuery,
-  ): Promise<Paginated<Transaction>> {
+  async findByAccountAndDateRange(accountId: string, DateRangeDto: TransactionDateRangeDto, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       const { fromDate, toDate } = DateRangeDto;
       return await paginate(query, this.transactionRepository, {
