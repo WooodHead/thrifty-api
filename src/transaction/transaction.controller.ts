@@ -10,7 +10,7 @@ import { User } from '../user/entities/user.entity';
 import { TransactionDateRangeDto, TransactionDateDto, TransactionIdDto, AccountIdDto, AccountIdAndDateDto } from './dto/common-transaction.dto';
 
 @ApiTags('Transactions')
-@Controller('api/v1/transactions')
+@Controller('/v1/transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 

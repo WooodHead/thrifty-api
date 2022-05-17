@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Body, Param, Delete, UseGuards, HttpCode } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiConsumes, ApiProduces } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -15,6 +15,8 @@ export class UserController {
     constructor(private readonly usersService: UserService) { }
 
     @Post('create')
+    @ApiConsumes('multipart/form-data')
+    @ApiProduces('application/json')
     create(@Body() createUserDto: CreateUserDto) {
         return this.usersService.create(createUserDto);
     }

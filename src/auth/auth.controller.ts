@@ -1,5 +1,5 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth, ApiConsumes, ApiProduces } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -16,6 +16,8 @@ export class AuthController {
     constructor(private readonly authService: AuthService) { }
 
     @ApiBasicAuth()
+    @ApiConsumes('multipart/form-data')
+    @ApiProduces('application/json')
     @Post('login')
     @HttpCode(200)
     @UseGuards(LocalAuthGuard)
@@ -30,6 +32,7 @@ export class AuthController {
     }
 
     @ApiBearerAuth()
+    @ApiProduces('application/json')
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     @HttpCode(200)
@@ -40,6 +43,7 @@ export class AuthController {
     }
 
     @ApiCookieAuth()
+    @ApiProduces('application/json')
     @Post('refresh-token')
     @HttpCode(200)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
