@@ -29,7 +29,7 @@ export class AuthController {
         };
     }
 
-    @ApiBearerAuth('JWT')
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard)
     @Post('logout')
     @HttpCode(200)
@@ -39,7 +39,7 @@ export class AuthController {
         return { message: 'Logout Successful' };
     }
 
-    @ApiCookieAuth('JWT')
+    @ApiCookieAuth()
     @Post('refresh-token')
     @HttpCode(200)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
