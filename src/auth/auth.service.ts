@@ -77,7 +77,8 @@ export class AuthService {
 
     async logout(user: User) {
         try {
-            const personalKey = await user.generatePersonalKey();
+            const logOutUser = await this.usersRepository.findOne(user.id);
+            const personalKey = await logOutUser.generatePersonalKey();
             await this.usersRepository.update(user.id, { personalKey });
         } catch (error) {
             console.error(error);

@@ -1,5 +1,5 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth, ApiConsumes, ApiProduces } from '@nestjs/swagger';
+import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth, ApiConsumes, ApiProduces, ApiBody } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -7,6 +7,7 @@ import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from 'src/user/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
+import { LoginUserDto } from './dto/login-user.dto';
 
 
 @ApiTags('Auth')
@@ -15,10 +16,11 @@ export class AuthController {
 
     constructor(private readonly authService: AuthService) { }
 
-    @ApiBasicAuth()
-    @ApiConsumes('multipart/form-data')
-    @ApiProduces('application/json')
     @Post('login')
+    @ApiBasicAuth()
+    @ApiBody({ type: LoginUserDto })
+    @ApiConsumes('application/x-www-form-urlencoded')
+    @ApiProduces('application/json')
     @HttpCode(200)
     @UseGuards(LocalAuthGuard)
     async login(@UserDecorator() user: User, @Res({ passthrough: true }) res: Response) {
@@ -31,10 +33,10 @@ export class AuthController {
         };
     }
 
+    @Post('logout')
     @ApiBearerAuth()
     @ApiProduces('application/json')
     @UseGuards(JwtAuthGuard)
-    @Post('logout')
     @HttpCode(200)
     async logout(@UserDecorator() user: User, @Res({ passthrough: true }) res: Response) {
         await this.authService.logout(user);
@@ -42,9 +44,9 @@ export class AuthController {
         return { message: 'Logout Successful' };
     }
 
+    @Post('refresh-token')
     @ApiCookieAuth()
     @ApiProduces('application/json')
-    @Post('refresh-token')
     @HttpCode(200)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         const { jit } = req.signedCookies;

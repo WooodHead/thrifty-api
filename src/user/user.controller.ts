@@ -21,8 +21,8 @@ export class UserController {
         return this.usersService.create(createUserDto);
     }
 
-    @ApiBearerAuth()
     @Get('userinfo')
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
     findOne(@UserDecorator('id') id: string) {
         return this.usersService.findOneById(id);
@@ -40,8 +40,8 @@ export class UserController {
         return this.usersService.resetPassword(resetPasswordDto);
     }
 
-    @ApiBearerAuth()
     @Put('change-password')
+    @ApiBearerAuth()
     @HttpCode(204)
     @UseGuards(JwtAuthGuard)
     async changePassword(@UserDecorator('id') id: string, @Body() changePasswordDto: UpdateUserPasswordDto) {

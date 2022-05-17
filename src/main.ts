@@ -55,7 +55,7 @@ async function bootstrap() {
     .addBearerAuth()
     .addCookieAuth('cookieAuth', { type: 'http', in: 'signedCookies', scheme: 'Bearer', name: 'jit' })
     .addServer('https://api-thrifty.herokuapp.com', 'Main (production) Server')
-    .setBasePath('/v1')
+    .addServer('http://localhost:3000', 'Localhost Server')
     .setContact('Lekan Adetunmbi', 'https://pollaroid.net', 'me@pollaroid.net')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .setTitle('Thrifty API')
