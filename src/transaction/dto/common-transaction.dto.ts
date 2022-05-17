@@ -1,10 +1,13 @@
 import { IsNotEmpty, IsISO8601, MinLength } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
 
 export class TransactionDateRangeDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsISO8601()
   readonly fromDate: Date;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsISO8601()
   readonly toDate: Date;

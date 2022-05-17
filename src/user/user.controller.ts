@@ -9,7 +9,7 @@ import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { ResetPasswordDto, ValidEmailDto } from './dto/common-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
 
-@ApiTags('Users')
+@ApiTags('User')
 @Controller('v1/users')
 export class UserController {
     constructor(private readonly usersService: UserService) { }
@@ -19,7 +19,7 @@ export class UserController {
         return this.usersService.create(createUserDto);
     }
 
-    @ApiBearerAuth('JWT')
+    @ApiBearerAuth()
     @Get('userinfo')
     @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
     findOne(@UserDecorator('id') id: string) {
@@ -38,7 +38,7 @@ export class UserController {
         return this.usersService.resetPassword(resetPasswordDto);
     }
 
-    @ApiBearerAuth('JWT')
+    @ApiBearerAuth()
     @Put('change-password')
     @HttpCode(204)
     @UseGuards(JwtAuthGuard)

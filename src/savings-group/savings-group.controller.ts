@@ -16,45 +16,58 @@ import { UpdateGroupMemberDto } from './dto/savings-group.dto';
 export class SavingsGroupController {
   constructor(private readonly savingsGroupService: SavingsGroupService) {}
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Post('create')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   create(@Body() createSavingsGroupDto: CreateSavingsGroupDto, @UserDecorator() user: User) {
     return this.savingsGroupService.create(createSavingsGroupDto, user);
   }
 
+  @ApiBearerAuth()
   @Patch('add-group-member')
-  // @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async addSavingsGroupMember(@Body() addMemberDto: UpdateGroupMemberDto) {
     return await this.savingsGroupService.addSavingsGroupMember(addMemberDto);
   }
 
+  @ApiBearerAuth()
   @Patch('remove-group-member')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async removeGroupMember(@Body() removeMemberDto: UpdateGroupMemberDto) {
     return await this.savingsGroupService.removeSavingsGroupMember(removeMemberDto);
   }
 
+  @ApiBearerAuth()
   @Get('all')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async findAll(@Query() query: PaginateQuery) {
     return await this.savingsGroupService.findAll(query);
   }
 
+  @ApiBearerAuth()
   @Get('by-name/:name')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async findByName(@Param('name') name: string) {
     return await this.savingsGroupService.findByName(name);
   }
 
+  @ApiBearerAuth()
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async findOne(@Param('id') id: string) {
     return await this.savingsGroupService.findOne(id);
   }
 
+  @ApiBearerAuth()
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   update(@Param('id') id: string, @Body() updateSavingsGroupDto: UpdateSavingsGroupDto) {
     return this.savingsGroupService.update(+id, updateSavingsGroupDto);
   }
 
+  @ApiBearerAuth()
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   remove(@Param('id') id: string) {
     return this.savingsGroupService.remove(+id);
   }

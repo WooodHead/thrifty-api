@@ -14,7 +14,7 @@ import { TransactionDateRangeDto, TransactionDateDto, TransactionIdDto, AccountI
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Post('create')
   @UseGuards(JwtAuthGuard)
   async create(
@@ -25,14 +25,14 @@ export class TransactionController {
     return await this.transactionService.create(createTransactionDto);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('all')
   @UseGuards(JwtAuthGuard)
   async findAll(@Query() query: PaginateQuery) {
     return await this.transactionService.findAll(query);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-date-range')
   @UseGuards(JwtAuthGuard)
   async findByDateRange(
@@ -42,7 +42,7 @@ export class TransactionController {
     return await this.transactionService.findByDateRange(dateRangeDto, query);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-date/:searchDate')
   @UseGuards(JwtAuthGuard)
   async findByDate(
@@ -52,7 +52,7 @@ export class TransactionController {
     return await this.transactionService.findByDate(params.searchDate, query);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('all-by-user')
   @UseGuards(JwtAuthGuard)
   async findAllByUser(
@@ -63,7 +63,7 @@ export class TransactionController {
     return await this.transactionService.findByUser(id, query);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-user/:searchDate')
   @UseGuards(JwtAuthGuard)
   async findByUserAndDate(
@@ -79,7 +79,7 @@ export class TransactionController {
     );
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-user-and-date-range')
   @UseGuards(JwtAuthGuard)
   async findByUserAndDateRange(
@@ -95,7 +95,7 @@ export class TransactionController {
     );
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-account/:accountId')
   @UseGuards(JwtAuthGuard)
   async findByAccount(
@@ -106,7 +106,7 @@ export class TransactionController {
     return await this.transactionService.findByAccount(accountId, query);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-account/:accountId/:searchDate')
   @UseGuards(JwtAuthGuard)
   async findByAccountAndDate(
@@ -121,7 +121,7 @@ export class TransactionController {
     );
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get('by-account-and-date-range/:accountId')
   @UseGuards(JwtAuthGuard)
   async findByAccountAndDateRange(
@@ -137,7 +137,7 @@ export class TransactionController {
     );
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param() params: TransactionIdDto) {
@@ -145,7 +145,7 @@ export class TransactionController {
     return await this.transactionService.findOne(transactionId);
   }
 
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth()
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   async update(

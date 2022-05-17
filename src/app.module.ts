@@ -32,11 +32,6 @@ const configService = new ConfigService(configuration);
         }),
     }),
     FirebaseModule.forRoot({
-      // googleApplicationCredential: {
-      //   projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
-      //   clientEmail: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
-      //   privateKey: configService.get<string>('FIREBASE_PRIVATE_KEY'),
-      // },
       googleApplicationCredential: JSON.parse(configService.get('FIREBASE_CREDENTIALS'))
     }),
     AuthModule,
