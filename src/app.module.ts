@@ -12,8 +12,6 @@ import { SavingsGroupModule } from './savings-group/savings-group.module';
 import { AccountModule } from './account/account.module';
 import { TransactionModule } from './transaction/transaction.module';
 import configuration from './config/configuration';
-// import { APP_GUARD } from '@nestjs/core';
-// import { RolesGuard } from './auth/guards/roles.guard';
 
 const configService = new ConfigService(configuration);
 
@@ -43,7 +41,6 @@ const configService = new ConfigService(configuration);
   ],
   controllers: [AppController],
   providers: [AppService],
-  // providers: [AppService, { provide: APP_GUARD, useClass: RolesGuard }],
 })
 export class AppModule {
 
