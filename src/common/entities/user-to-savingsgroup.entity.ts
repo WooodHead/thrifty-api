@@ -20,6 +20,9 @@ export class UserToSavingsGroup {
     @CreateDateColumn()
     public dateAdded!: Date;
 
+    @Column('decimal', { default: 0, scale: 2 })
+    public contributedFunds!: number;
+
     @ManyToOne(() => User, (user) => user.savingsGroups, { onDelete: 'CASCADE' })
     public user!: User
 

@@ -9,12 +9,12 @@ import { RoleGuard } from '../auth/guards/roles.guard';
 import { Role } from '../user/interfaces/user.interface';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { UpdateGroupMemberDto } from './dto/savings-group.dto';
+import { ContributeFundsDto, UpdateGroupMemberDto } from './dto/savings-group.dto';
 
 @ApiTags('Savings Group')
 @Controller('v1/savings-group')
 export class SavingsGroupController {
-  constructor(private readonly savingsGroupService: SavingsGroupService) {}
+  constructor(private readonly savingsGroupService: SavingsGroupService) { }
 
   @Post('create')
   @ApiBearerAuth()
@@ -35,6 +35,13 @@ export class SavingsGroupController {
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async removeGroupMember(@Body() removeMemberDto: UpdateGroupMemberDto) {
     return await this.savingsGroupService.removeSavingsGroupMember(removeMemberDto);
+  }
+
+  @Patch('contribute-funds')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  contibuteFunds(@UserDecorator('id') id: string, @Body() contributeFundsDto: ContributeFundsDto) {
+    return this.savingsGroupService.contriubeFundsToGroup(id, contributeFundsDto);
   }
 
   @Get('all')
