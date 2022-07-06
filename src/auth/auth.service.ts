@@ -31,7 +31,7 @@ export class AuthService {
 
     async validateJwt(sub: string): Promise<any> {
         try {
-            const user = await this.usersRepository.findOne(sub);
+            const user = await this.usersRepository.findOneBy({ id: sub });
             if (user) {
                 const { refreshToken, resetPassword, ...data } = user;
                 return data;
@@ -77,7 +77,7 @@ export class AuthService {
 
     async logout(user: User) {
         try {
-            const logOutUser = await this.usersRepository.findOne(user.id);
+            const logOutUser = await this.usersRepository.findOneBy({ id: user.id });
             const personalKey = await logOutUser.generatePersonalKey();
             await this.usersRepository.update(user.id, { personalKey });
         } catch (error) {
@@ -90,7 +90,7 @@ export class AuthService {
         try {
             if (!token) throw new BadRequestException('Refresh Token cannot be empty');
             const decoded = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
-            const user = await this.usersRepository.findOne(decoded.sub);
+            const user = await this.usersRepository.findOneBy({ id: decoded.sub });
             if (user && user.validatePersonalKey(decoded.rtk)) {
                 return await this.login(user);
             };

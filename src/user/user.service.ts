@@ -19,7 +19,7 @@ export class UserService {
 
     async findOneByEmail(email: string): Promise<User> {
         try {
-            const foundUser = await this.usersRepository.findOne({ email });
+            const foundUser = await this.usersRepository.findOneBy({ email });
             if (foundUser) {
                 return foundUser;
             };
@@ -32,7 +32,7 @@ export class UserService {
 
     async findOneById(id: string): Promise<any> {
         try {
-            const foundUser = await this.usersRepository.findOne(id);
+            const foundUser = await this.usersRepository.findOneBy({ id });
             if (foundUser) {
                 const { refreshToken, resetPassword, password, personalKey, ...data } = foundUser;
                 return data;
@@ -46,7 +46,7 @@ export class UserService {
 
     async create(createUserDto: CreateUserDto): Promise<User> {
         try {
-            const isUserExist = await this.usersRepository.findOne({ email: createUserDto.email })
+            const isUserExist = await this.usersRepository.findOneBy({ email: createUserDto.email })
             if (isUserExist) throw new ConflictException(`User with ${createUserDto.email} already exists`);
 
             const newUser = this.usersRepository.create(createUserDto);
@@ -61,7 +61,7 @@ export class UserService {
 
     async getVerificationCode(email: string): Promise<{}> {
         try {
-            const foundUser = await this.usersRepository.findOne({ email });
+            const foundUser = await this.usersRepository.findOneBy({ email });
             if (foundUser) {
                 const code = await foundUser.generatePasswordResetCode()
                 const mailOptions: SendMailOptions = [
@@ -86,7 +86,7 @@ export class UserService {
     async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
         try {
             const { email, code, password } = resetPasswordDto
-            const foundUser = await this.usersRepository.findOne({ email });
+            const foundUser = await this.usersRepository.findOneBy({ email });
             if (foundUser && await foundUser.verifyPasswordResetCode(code)) {
                 await this.usersRepository.update(foundUser.id, { password: await foundUser.hashPasswordBeforeUpdate(password) });
                 return true;
@@ -100,7 +100,7 @@ export class UserService {
 
     async changePassword(id: string, changePasswordDto: UpdateUserPasswordDto): Promise<boolean> {
         try {
-            const foundUser = await this.usersRepository.findOne(id)
+            const foundUser = await this.usersRepository.findOneBy({ id })
             if (foundUser) {
                 const { password } = changePasswordDto;
                 await this.usersRepository.update(foundUser.id, { password: await foundUser.hashPasswordBeforeUpdate(password) });

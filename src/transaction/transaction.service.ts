@@ -46,7 +46,7 @@ export class TransactionService {
 
   async findOne(id: string): Promise<Transaction> {
     try {
-      const transaction = await this.transactionRepository.findOne(id);
+      const transaction = await this.transactionRepository.findOneBy({ id });
       if (!transaction)
         throw new NotFoundException(
           `Transaction with ID: ${id} not found on this server`,
@@ -197,7 +197,7 @@ export class TransactionService {
 
   async update(id: string, updateTransactionDto: UpdateTransactionDto) {
     try {
-      const transaction = await this.transactionRepository.findOne(id);
+      const transaction = await this.transactionRepository.findOneBy({ id });
       if (transaction) {
         await this.transactionRepository.update(id, updateTransactionDto);
       }
