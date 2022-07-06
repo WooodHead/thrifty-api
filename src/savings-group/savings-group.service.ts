@@ -122,11 +122,12 @@ export class SavingsGroupService {
       if (!user) throw new NotFoundException(`User with ID: ${userId} not found on this server`);
 
       // check if savingsGroup exists
-      const savingsGroup = await this.savingsGroupRepository.findOne({ where: { id: savingsGroupId } });
+      const savingsGroup = await this.findOne(savingsGroupId);
       if (!savingsGroup) throw new NotFoundException(`SavingsGroup with ID: ${savingsGroupId} not found on this server`);
 
       // Check if user is a member of the savings group
-      const userIsMember = savingsGroup.groupMembers.some(member => member.userId === user.id);
+      const { groupMembers } = savingsGroup;
+      const userIsMember = groupMembers.some(member => member.userId === user.id);
       if (!userIsMember) throw new NotFoundException(`User with ID: ${userId} is not a member of savingsGroup with ID: ${savingsGroupId}`);
 
       // remove user from savingsGroup
@@ -165,7 +166,7 @@ export class SavingsGroupService {
 
       await this.userToSavingsGroupRepository.save(saveToGroup);
 
-      return { message: `Contribution made successfully` }
+      return { message: `SUCESS!!! ${amountToSave} contributed to ${savingsGroup.groupName} group, new savings balance is ${saveToGroup.contributedFunds}` }
 
     } catch (error) {
       console.error(error);

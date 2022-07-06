@@ -16,7 +16,7 @@ This is a fictional financial services provider which offers traditonal financia
 
 * [NestJS](https://nestjs.com/)
 * [TypeScript](https://www.typescriptlang.org/)
-* [Postgres](https://www.postgresql.org/)
+* [PostgreSQL](https://www.postgresql.org/)
 * [TypeORM](https://typeorm.io/)
 * [Passportjs](https://www.passportjs.org/)
 * [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
