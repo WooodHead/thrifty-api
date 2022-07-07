@@ -14,15 +14,22 @@ This is a fictional financial services provider which offers traditonal financia
 
 ## Tech Stack
 
-* [NestJS](https://nestjs.com/)
 * [TypeScript](https://www.typescriptlang.org/)
+* [NestJS](https://nestjs.com/)
 * [PostgreSQL](https://www.postgresql.org/)
 * [TypeORM](https://typeorm.io/)
+* [Redis](https://redis.io/)
 * [Passportjs](https://www.passportjs.org/)
 * [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
 * [Jest](https://jestjs.io/)
 
+## Endpoints 
+
+* Full API Documentation is available [here](https://api-thrifty.herokuapp.com/api-docs)
+
 ## Available Routes:
+
+Some of the available routes are listed below:
 
 ### Base URL 
 
@@ -31,26 +38,26 @@ This is a fictional financial services provider which offers traditonal financia
 #### Authentication Routes
 * User Login:                                                   POST    /auth/login
 * User Logout:                                                  GET     /auth/logout
-* Refresh Token:                                                POST    /auth/refresh_token 
+* Refresh Token:                                                POST    /auth/refresh-token 
 
 #### User Routes
-* Create User:                                                  POST    /user/register
-* User Info:                                                    GET     /user/userinfo
+* Create User:                                                  POST    /users/create
+* User Info:                                                    GET     /users/userinfo
 
 #### Password Reset Routes
-* Verification Code:                                            GET     /user/verification_code
-* Reset Password                                                PUT     /user/reset_password
+* Verification Code:                                            GET     /users/get-verification-code/:email
+* Reset Password                                                PUT     /users/reset-password
+* Change Password                                               PUT     /users/change-password
+* Delete User account                                           DEL     /users/:id
 
 #### Savings Group Routes
-* Get All Savings Group                                         GET     /savings_group/all
-* Search Savings Group                                          GET     /savings_group/search
-* Get Savings Group by Id                                       GET     /savings_group/:id
-* Get Members of a Savings Group                                GET     /savings_group/:id/members
-* Create Savings Group                                          POST    /savings_group/create
-* Add Member to Savings Group                                   PUT     /savings_group/:id/add_member
-* Remove Member from Savings Group                              PUT     /savings_group/:id/remove_member'
-* Delete Savings Group                                          DELETE  /savings_group/:id/delete_savings_group'
-* Post Send Group Invitation                                    POST    /savings_group/send_group_invitation
-
-#### Savings Group Transaction Routes
-* Put Add Savings Group Transaction                             PUT     /savings_group/:id/add_savings
+* Get All Savings Group                                         GET     /savings-group/all
+* Get Savings Group by name                                     GET     /savings-group/by-name/:name
+* Get Savings Group by Id                                       GET     /savings-group/:id
+* Get Members of a Savings Group                                GET     /savings-group/:id/members
+* Create Savings Group                                          POST    /savings-group/create
+* Update Savings Group                                          PATCH   /savings-group/:id
+* Delete Savings Group                                          DELETE  /savings-group/:id
+* Add Member to Savings Group                                   PATCH   /savings-group/add-group-member
+* Remove Member from Savings Group                              PATCH   /savings-group/remove-group-member
+* Put Add Savings Group Transaction                             PATCH   /savings-group/contribute-funds
