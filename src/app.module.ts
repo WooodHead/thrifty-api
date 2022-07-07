@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { DefaultAdminModule } from 'nestjs-admin';
+import { CacheModule, Module } from '@nestjs/common';
+import { DefaultAdminModule, AdminUserEntity } from 'nestjs-admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Connection, getConnectionOptions } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FirebaseModule } from 'nestjs-firebase';
 import { AppController } from './app.controller';
@@ -13,25 +13,46 @@ import { AccountModule } from './account/account.module';
 import { TransactionModule } from './transaction/transaction.module';
 import configuration from './config/configuration';
 
-const configService = new ConfigService(configuration);
-
 @Module({
   imports: [
     ConfigModule.forRoot({
       cache: true,
       isGlobal: true,
-      load: [configuration]
+      load: [configuration],
     }),
+
     TypeOrmModule.forRootAsync({
-      useFactory: async () =>
-        Object.assign(await getConnectionOptions(), {
-          autoLoadEntities: true,
-          useUnifiedTopology: true,
-        }),
+      useFactory: async (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DB_HOST'),
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USERNAME'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_DATABASE'),
+        entities: ['dist/**/entities/*.entity.js', AdminUserEntity],
+        migrations: ['dist/migrations/*.js'],
+        migrationsTableName: 'migrations_history',
+        synchronize: false,
+        ssl: {
+          rejectUnauthorized: false
+        }
+      }),
+      inject: [ConfigService]
     }),
-    FirebaseModule.forRoot({
-      googleApplicationCredential: JSON.parse(configService.get('FIREBASE_CREDENTIALS'))
+
+    FirebaseModule.forRootAsync({
+      useFactory: async (configService: ConfigService) => ({
+        googleApplicationCredential: JSON.parse(configService.get('FIREBASE_CREDENTIALS'))
+      }),
+      inject: [ConfigService]
     }),
+
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 5,
+      max: 10,
+    }),
+
     AuthModule,
     DefaultAdminModule,
     UserModule,
@@ -44,6 +65,6 @@ const configService = new ConfigService(configuration);
 })
 export class AppModule {
 
-  constructor(private connection: Connection) { }
+  constructor(private dataSource: DataSource) { }
 
 }
