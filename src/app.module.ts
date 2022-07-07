@@ -1,9 +1,12 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheInterceptor, CacheModule, Module } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { DefaultAdminModule, AdminUserEntity } from 'nestjs-admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FirebaseModule } from 'nestjs-firebase';
+import { RedisClientOptions } from 'redis';
+import * as redisStore from 'cache-manager-redis-store';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -47,10 +50,20 @@ import configuration from './config/configuration';
       inject: [ConfigService]
     }),
 
-    CacheModule.register({
-      isGlobal: true,
-      ttl: 5,
-      max: 10,
+    CacheModule.registerAsync<RedisClientOptions>({
+      useFactory: async (configService: ConfigService) => ({
+        
+        isGlobal: true,
+        ttl: 300,
+        max: 1000,
+
+        store: redisStore,
+        url: configService.get<string>('REDIS_HOST_URL'),
+        username: configService.get<string>('REDIS_USERNAME'),
+        password: configService.get<string>('REDIS_PASSWORD'),
+        database: configService.get<number>('REDIS_DATABASE'),
+      }),
+      inject: [ConfigService]
     }),
 
     AuthModule,
@@ -61,7 +74,13 @@ import configuration from './config/configuration';
     TransactionModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+  ],
 })
 export class AppModule {
 
