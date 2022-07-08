@@ -61,7 +61,7 @@ import configuration from './config/configuration';
         url: configService.get<string>('REDIS_HOST_URL'),
         username: configService.get<string>('REDIS_USERNAME'),
         password: configService.get<string>('REDIS_PASSWORD'),
-        database: configService.get<number>('REDIS_DATABASE'),
+        name: configService.get<string>('REDIS_DATABASE_NAME'),
       }),
       inject: [ConfigService]
     }),

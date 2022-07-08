@@ -9,7 +9,7 @@ export default () => ({
     REDIS_HOST_URL: process.env.REDIS_HOST_URL,
     REDIS_USERNAME: process.env.REDIS_USERNAME,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
-    REDIS_DATABASE: process.env.REDIS_DATABASE,
+    REDIS_DATABASE_NAME: process.env.REDIS_DATABASE_NAME,
 
     ACCESS_TOKEN_PUBLIC_KEY: Buffer.from(process.env.ACCESS_TOKEN_PUBLIC_KEY_BASE64, 'base64').toString('ascii'),
     ACCESS_TOKEN_PRIVATE_KEY: Buffer.from(process.env.ACCESS_TOKEN_PRIVATE_KEY_BASE64, 'base64').toString('ascii'),
