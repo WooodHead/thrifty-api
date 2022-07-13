@@ -1,4 +1,4 @@
-import { Entity, Column, OneToMany, ManyToMany } from 'typeorm';
+import { Entity, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { User } from '../../user/entities/user.entity';
 import { Transaction } from '../../transaction/entities/transaction.entity';
@@ -29,7 +29,8 @@ export class Account extends AbstractEntity {
     bookBalance: number;
 
     @ManyToMany(() => User, user => user.accounts)
-    user: User
+    @JoinTable()
+    accountHolders: User[]
 
     @OneToMany(() => Transaction, (transactions) => transactions.fromAccount)
     transactions: Transaction[];

@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne, ManyToMany, OneToMany, JoinTable } from 'typeorm';
+import { Entity, Column, ManyToOne, OneToMany } from 'typeorm';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { UserToSavingsGroup } from '../../common/entities/user-to-savingsgroup.entity';
 import { User } from '../../user/entities/user.entity';

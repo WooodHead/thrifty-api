@@ -6,6 +6,7 @@ import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionDateRangeDto } from './dto/common-transaction.dto';
+import { generateTransactionRef } from '../utils/generateTrsnactionRef';
 
 @Injectable()
 export class TransactionService {
@@ -16,7 +17,8 @@ export class TransactionService {
 
   async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
     try {
-      createTransactionDto.transactionDate = new Date(Date.now());
+      createTransactionDto.transactionDate = new Date();
+      createTransactionDto.transactionRef = generateTransactionRef();
       const newTransaction = this.transactionRepository.create(createTransactionDto);
       await this.transactionRepository.save(newTransaction);
       return newTransaction;

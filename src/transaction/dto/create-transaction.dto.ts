@@ -1,8 +1,9 @@
 import { Type } from 'class-transformer';
 import { IsString, IsEnum, ValidateNested, IsObject, IsNumber, IsOptional } from 'class-validator';
-import { ApiProperty } from "@nestjs/swagger";
-import { IExternalAccount, TransactionStatus, TransactionType } from '../interfaces/transaction.interface';
+import { ApiProperty } from '@nestjs/swagger';
+import { IExternalAccount, TransactionMode, TransactionStatus, TransactionType } from '../interfaces/transaction.interface';
 import { User } from '../../user/entities/user.entity';
+import { Account } from '../../account/entities/account.entity';
 
 export class ExternalAccountDto implements IExternalAccount {
   accountNumber: number;
@@ -25,14 +26,23 @@ export class CreateTransactionDto {
 
   @ApiProperty()
   @IsEnum(TransactionType)
+  transactionMode: TransactionMode;
+
+  @ApiProperty()
+  @IsEnum(TransactionType)
   transactionType: TransactionType;
 
   @ApiProperty()
   @IsEnum(TransactionStatus)
   transactionStatus: TransactionStatus;
 
+  @ApiProperty()
   @IsOptional()
   user: User;
+
+  @ApiProperty()
+  @IsOptional()
+  toInternalAccount: Account;
 
   @IsOptional()
   @IsObject()

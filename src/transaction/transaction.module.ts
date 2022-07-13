@@ -7,7 +7,7 @@ import { Transaction } from './entities/transaction.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Transaction]), DefaultAdminModule],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule, TransactionService],
   controllers: [TransactionController],
   providers: [TransactionService],
 })

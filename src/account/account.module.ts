@@ -4,9 +4,11 @@ import { DefaultAdminModule, DefaultAdminSite } from 'nestjs-admin';
 import { AccountService } from './account.service';
 import { AccountController } from './account.controller';
 import { Account } from './entities/account.entity';
+import { TransactionModule } from '../transaction/transaction.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Account]), DefaultAdminModule],
+  imports: [TypeOrmModule.forFeature([Account]), DefaultAdminModule, TransactionModule, UserModule],
   controllers: [AccountController],
   providers: [AccountService]
 })

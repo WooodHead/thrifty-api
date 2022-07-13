@@ -1,6 +1,8 @@
 export enum TransactionType {
   INSTANTTRANSFER = 'INSTANT TRANSFER',
   BILLPAYMENT = 'BILL PAYMENT',
+  FUNDS_DEPOSIT = 'FUNDS DEPOSIT',
+  FUNDS_WITHDRAWAL = 'FUNDS WITHDRAWAL'
 }
 
 export enum TransactionMode {

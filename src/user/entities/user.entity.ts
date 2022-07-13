@@ -1,4 +1,4 @@
-import { Entity, Column, BeforeInsert, OneToMany } from 'typeorm';
+import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
 import { compare, hash } from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
@@ -54,7 +54,7 @@ export class User extends AbstractEntity {
     @OneToMany(() => UserToSavingsGroup, userToSavingsGroup => userToSavingsGroup.user)
     public savingsGroups!: UserToSavingsGroup[];
 
-    @OneToMany(() => Account, account => account.user)
+    @ManyToMany(() => Account, account => account.accountHolders)
     accounts: Account[];
     
     @OneToMany(() => Transaction, (transaction) => transaction.user)
