@@ -1,5 +1,5 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsISO8601, Length } from 'class-validator';
-import { ApiProperty } from "@nestjs/swagger";
 
 export class TransactionDateRangeDto {
   @ApiProperty()

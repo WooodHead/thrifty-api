@@ -57,7 +57,7 @@ export class User extends AbstractEntity {
     @ManyToMany(() => Account, account => account.accountHolders)
     accounts: Account[];
     
-    @OneToMany(() => Transaction, (transaction) => transaction.user)
+    @OneToMany(() => Transaction, (transaction) => transaction.customer)
     transactions: Transaction[];
 
     @Column('jsonb', { nullable: true, default: {} })

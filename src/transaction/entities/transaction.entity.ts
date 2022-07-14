@@ -9,7 +9,7 @@ export class Transaction extends AbstractEntity {
 
   @Column('time without time zone')
   transactionDate: Date;
-  
+
   @Column('varchar', { length: 255, default: '' })
   description: string;
 
@@ -29,9 +29,9 @@ export class Transaction extends AbstractEntity {
   transactionStatus: TransactionStatus;
 
   @ManyToOne(() => User, (user) => user.transactions)
-  user: User;
+  customer: User;
 
-  @ManyToOne(() => Account, (account) => account.transactions)
+  @ManyToOne(() => Account, (account) => account.transactions, { nullable: true })
   fromAccount: Account;
 
   @ManyToOne(() => Account, (account) => account.transactions, { nullable: true })
@@ -47,7 +47,7 @@ export class Transaction extends AbstractEntity {
   transactionRef: string;
 
   @BeforeInsert()
-  addTransactionRef () {
+  addTransactionRef() {
     this.transactionRef = `${this.transactionType}-${this.transactionMode}-${this.transactionDate.getTime()}`;
   }
 

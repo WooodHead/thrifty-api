@@ -15,22 +15,6 @@ export class TransactionService {
     private readonly transactionRepository: Repository<Transaction>,
   ) { }
 
-  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
-    try {
-      createTransactionDto.transactionDate = new Date();
-      createTransactionDto.transactionRef = generateTransactionRef();
-      const newTransaction = this.transactionRepository.create(createTransactionDto);
-      await this.transactionRepository.save(newTransaction);
-      return newTransaction;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   async findAll(query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
       return await paginate(query, this.transactionRepository, {
@@ -101,7 +85,7 @@ export class TransactionService {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
         defaultSortBy: [['createdAt', 'DESC']],
-        where: { user: { id: userId } },
+        where: { customer: { id: userId } },
       });
     } catch (error) {
       console.error(error);
@@ -117,7 +101,7 @@ export class TransactionService {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
         defaultSortBy: [['createdAt', 'DESC']],
-        where: { user: { id: userId }, createdAt: Equal(searchDate) },
+        where: { customer: { id: userId }, createdAt: Equal(searchDate) },
       });
     } catch (error) {
       console.error(error);
@@ -134,7 +118,7 @@ export class TransactionService {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
         defaultSortBy: [['createdAt', 'DESC']],
-        where: { user: { id: userId }, createdAt: Between(fromDate, toDate) },
+        where: { customer: { id: userId }, createdAt: Between(fromDate, toDate) },
       });
     } catch (error) {
       console.error(error);
@@ -188,6 +172,20 @@ export class TransactionService {
           createdAt: Between(fromDate, toDate),
         },
       });
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+    try {
+      const newTransaction = this.transactionRepository.create(createTransactionDto);
+      await this.transactionRepository.save(newTransaction);
+      return newTransaction;
     } catch (error) {
       console.error(error);
       throw new HttpException(

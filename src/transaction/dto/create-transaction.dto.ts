@@ -1,6 +1,6 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsString, IsEnum, ValidateNested, IsObject, IsNumber, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 import { IExternalAccount, TransactionMode, TransactionStatus, TransactionType } from '../interfaces/transaction.interface';
 import { User } from '../../user/entities/user.entity';
 import { Account } from '../../account/entities/account.entity';

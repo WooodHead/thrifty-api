@@ -4,20 +4,20 @@ import { Repository, Any } from 'typeorm';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
-import { DepositOrWithdrawMoneyDto } from './dto/common-account.dto';
+import { DepositOrWithdrawMoneyDto, TransferFundsToExternalDto, TransferFundsToInternalDto } from './dto/common-account.dto';
 import { User } from '../user/entities/user.entity';
 import { Account } from './entities/account.entity';
-import { TransactionService } from '../transaction/transaction.service';
 import { CreateTransactionDto } from '../transaction/dto/create-transaction.dto';
 import { TransactionStatus, TransactionType, TransactionMode } from '../transaction/interfaces/transaction.interface'
 import { generateAccountNumber } from '../utils/generateAccountNumber';
+import { Transaction } from '../transaction/entities/transaction.entity';
 
 @Injectable()
 export class AccountService {
 
   constructor(
-    private transactionService: TransactionService,
     @InjectRepository(Account) private readonly accountRepository: Repository<Account>,
+    @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) { }
 
@@ -97,11 +97,11 @@ export class AccountService {
     }
   }
 
-  async checkAccountBalance(accountNumber: number, userId: string) {
+  async checkAccountBalance(accountNumber: number, user: User) {
     try {
       const account = await this.accountRepository.findOneBy({
         accountNumber,
-        accountHolders: { id: userId }
+        accountHolders: { id: user.id }
       });
 
       if (account) return account.accountBalance;
@@ -116,35 +116,36 @@ export class AccountService {
     }
   }
 
-  async depositMoney(transactionInfo: DepositOrWithdrawMoneyDto, userId: string) {
+  async depositFunds(transactionInfo: DepositOrWithdrawMoneyDto, user: User) {
     try {
       const { accountNumber, transactionAmount, transactionParty } = transactionInfo;
 
       // Search for account and add transaction amout to account balance
       const account = await this.accountRepository.findOneBy({
         accountNumber: +accountNumber,
-        accountHolders: { id: userId }
+        accountHolders: { id: user.id }
       });
 
       if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
-      account.accountBalance += transactionAmount;
-      account.bookBalance += transactionAmount;
+      account.accountBalance = +account.accountBalance + transactionAmount;
+      account.bookBalance = +account.accountBalance + transactionAmount;
 
       // Prepare and create transaction record
-      const newTransaction = new CreateTransactionDto();
+      const newTransaction = new Transaction();
 
+      newTransaction.transactionDate = new Date()
       newTransaction.description = `Deposit of ${transactionAmount} made by ${transactionParty}`;
       newTransaction.transactionAmount = transactionAmount;
-      newTransaction.user = await this.userRepository.findOneBy({ id: userId })
-      newTransaction.toInternalAccount = account;
-      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
-      newTransaction.transactionType = TransactionType.FUNDS_DEPOSIT;
       newTransaction.transactionMode = TransactionMode.CREDIT;
+      newTransaction.transactionType = TransactionType.FUNDS_DEPOSIT;
+      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
+      newTransaction.toInternalAccount = account;
+      newTransaction.customer = user
       newTransaction.accountBalance = account.accountBalance;
 
-      await account.save();
+      await this.accountRepository.save(account);
 
-      return await this.transactionService.create(newTransaction);
+      return await this.transactionRepository.save(newTransaction);
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -154,36 +155,137 @@ export class AccountService {
     }
   }
 
-  async withdrawMoney(transactionInfo: DepositOrWithdrawMoneyDto, userId: string) {
+  async withdrawFunds(transactionInfo: DepositOrWithdrawMoneyDto, user: User) {
     try {
+
       const { accountNumber, transactionAmount, transactionParty } = transactionInfo;
+
       // Search for account and add transaction amout to account balance
       const account = await this.accountRepository.findOneBy({
         accountNumber: +accountNumber,
-        accountHolders: { id: userId }
+        accountHolders: { id: user.id }
       });
 
       if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
 
       if (account.accountBalance < transactionAmount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
-      account.accountBalance -= transactionAmount;
-      account.bookBalance -= transactionAmount;
+      account.accountBalance = +account.accountBalance - transactionAmount;
+      account.bookBalance = +account.accountBalance - transactionAmount;
 
       // Prepare and create transaction record
-      const newTransaction = new CreateTransactionDto();
+      const newTransaction = new Transaction();
 
+      newTransaction.transactionDate = new Date()
       newTransaction.description = `cash Withdrawal of ${transactionAmount} made by ${transactionParty}`;
       newTransaction.transactionAmount = transactionAmount;
-      newTransaction.user = await this.userRepository.findOneBy({ id: userId })
-      newTransaction.toInternalAccount = account;
-      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
-      newTransaction.transactionType = TransactionType.FUNDS_WITHDRAWAL;
       newTransaction.transactionMode = TransactionMode.DEBIT;
+      newTransaction.transactionType = TransactionType.FUNDS_WITHDRAWAL;
+      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
+      newTransaction.fromAccount = account;
+      newTransaction.customer = user
       newTransaction.accountBalance = account.accountBalance;
 
-      await account.save();
+      await this.accountRepository.save(account);
 
-      return await this.transactionService.create(newTransaction);
+      return await this.transactionRepository.save(newTransaction);
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async internalFundsTransfer(transferInternalDto: TransferFundsToInternalDto, user: User) {
+    try {
+      const { fromAccount, toInternalAccount, toInternalAccountName, amountToTransfer } = transferInternalDto;
+
+      // Search for account and add transaction amout to account balance
+      const account = await this.accountRepository.findOneBy({
+        accountNumber: +fromAccount,
+        accountHolders: { id: user.id }
+      });
+
+      if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
+      if (account.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+
+      const toAccount = await this.accountRepository.findOneBy({
+        accountNumber: +toInternalAccount,
+        accountName: toInternalAccountName
+      });
+
+      if (!toAccount) throw new NotFoundException(`Invalid Account number/name combination`);
+
+      // Adjust both accounts
+      account.accountBalance = +account.accountBalance - amountToTransfer;
+      account.bookBalance = +account.accountBalance - amountToTransfer;
+
+      toAccount.accountBalance = +toAccount.accountBalance + amountToTransfer;
+      toAccount.bookBalance = +toAccount.accountBalance + amountToTransfer;
+
+      // Prepare and create transaction record
+      const newTransaction = new Transaction();
+
+      newTransaction.transactionDate = new Date()
+      newTransaction.description = `Funds transfer of ${amountToTransfer} from ${fromAccount} - ${account.accountName} to ${toInternalAccount} - ${toAccount.accountName}`;
+      newTransaction.transactionAmount = amountToTransfer;
+      newTransaction.transactionMode = TransactionMode.DEBIT;
+      newTransaction.transactionType = TransactionType.INSTANTTRANSFER;
+      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
+      newTransaction.fromAccount = account;
+      newTransaction.toInternalAccount = toAccount;
+      newTransaction.customer = user;
+      newTransaction.accountBalance = account.accountBalance;
+
+      await this.accountRepository.save([account, toAccount]);
+
+      return await this.transactionRepository.save(newTransaction);
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async externalFundsTransfer(transferInternalDto: TransferFundsToExternalDto, user: User) {
+    try {
+      const { fromAccount, toExternalAccount, amountToTransfer } = transferInternalDto;
+
+      // Search for account and add transaction amout to account balance
+      const account = await this.accountRepository.findOneBy({
+        accountNumber: +fromAccount,
+        accountHolders: { id: user.id }
+      });
+
+      if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
+      if (account.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+
+      // Deduct Funds from internal account
+      account.accountBalance = +account.accountBalance - amountToTransfer;
+      account.bookBalance = +account.accountBalance - amountToTransfer;
+
+      // Prepare and create transaction record
+      const newTransaction = new Transaction();
+
+      newTransaction.transactionDate = new Date()
+      newTransaction.description = `Funds transfer of ${amountToTransfer} from ${fromAccount} - ${account.accountName} to ${toExternalAccount.bankName} - ${toExternalAccount.accountNumber} - ${toExternalAccount.accountName}`;
+      newTransaction.transactionAmount = amountToTransfer;
+      newTransaction.transactionMode = TransactionMode.DEBIT;
+      newTransaction.transactionType = TransactionType.INSTANTTRANSFER;
+      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
+      newTransaction.fromAccount = account;
+      newTransaction.toExternalAccount = toExternalAccount;
+      newTransaction.customer = user;
+      newTransaction.accountBalance = account.accountBalance;
+
+      await this.accountRepository.save(account);
+
+      return await this.transactionRepository.save(newTransaction);
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
