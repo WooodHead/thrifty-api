@@ -7,7 +7,6 @@ import { UpdateAccountDto } from './dto/update-account.dto';
 import { DepositOrWithdrawMoneyDto, TransferFundsToExternalDto, TransferFundsToInternalDto } from './dto/common-account.dto';
 import { User } from '../user/entities/user.entity';
 import { Account } from './entities/account.entity';
-import { CreateTransactionDto } from '../transaction/dto/create-transaction.dto';
 import { TransactionStatus, TransactionType, TransactionMode } from '../transaction/interfaces/transaction.interface'
 import { generateAccountNumber } from '../utils/generateAccountNumber';
 import { Transaction } from '../transaction/entities/transaction.entity';
@@ -67,7 +66,7 @@ export class AccountService {
     }
   }
 
-  async findByName(name: string) {
+  async findByAccountName(name: string) {
     try {
       const account = await this.accountRepository.findOneBy({ accountName: name });
       if (account) return account;
@@ -81,7 +80,7 @@ export class AccountService {
     }
   }
 
-  async findByUser(userId: string, query: PaginateQuery): Promise<Paginated<Account>> {
+  async findAccountByUser(userId: string, query: PaginateQuery): Promise<Paginated<Account>> {
     try {
       return await paginate(query, this.accountRepository, {
         sortableColumns: ['createdAt'],
@@ -97,11 +96,11 @@ export class AccountService {
     }
   }
 
-  async checkAccountBalance(accountNumber: number, user: User) {
+  async checkAccountBalance(accountNumber: number, userId: string) {
     try {
       const account = await this.accountRepository.findOneBy({
         accountNumber,
-        accountHolders: { id: user.id }
+        accountHolders: { id: userId }
       });
 
       if (account) return account.accountBalance;
@@ -251,9 +250,9 @@ export class AccountService {
     }
   }
 
-  async externalFundsTransfer(transferInternalDto: TransferFundsToExternalDto, user: User) {
+  async externalFundsTransfer(transferExternalDto: TransferFundsToExternalDto, user: User) {
     try {
-      const { fromAccount, toExternalAccount, amountToTransfer } = transferInternalDto;
+      const { fromAccount, toExternalAccount, amountToTransfer } = transferExternalDto;
 
       // Search for account and add transaction amout to account balance
       const account = await this.accountRepository.findOneBy({

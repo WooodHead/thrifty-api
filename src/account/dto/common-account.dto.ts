@@ -24,6 +24,13 @@ export class AccountNumberDto {
     readonly accountNumber: string;
 }
 
+export class AccountNameDto {
+    @MinLength(1, {
+        message: 'Account Name must be greater than Zero',
+    })
+    readonly accountName: string;
+}
+
 export class DepositOrWithdrawMoneyDto {
     @ApiProperty()
     @IsString()

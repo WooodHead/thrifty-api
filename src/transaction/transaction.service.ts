@@ -181,20 +181,6 @@ export class TransactionService {
     }
   }
 
-  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
-    try {
-      const newTransaction = this.transactionRepository.create(createTransactionDto);
-      await this.transactionRepository.save(newTransaction);
-      return newTransaction;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   async update(id: string, updateTransactionDto: UpdateTransactionDto) {
     try {
       const transaction = await this.transactionRepository.findOneBy({ id });
