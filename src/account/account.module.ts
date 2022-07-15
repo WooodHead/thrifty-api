@@ -8,7 +8,11 @@ import { TransactionModule } from '../transaction/transaction.module';
 import { UserModule } from '../user/user.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Account]), DefaultAdminModule, TransactionModule, UserModule],
+  imports: [
+    TypeOrmModule.forFeature([Account]),
+    DefaultAdminModule,
+    TransactionModule,
+    UserModule],
   controllers: [AccountController],
   providers: [AccountService]
 })

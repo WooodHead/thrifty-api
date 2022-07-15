@@ -1,4 +1,12 @@
-import { Controller, Get, Body, Patch, Param, UseGuards, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PaginateQuery } from 'nestjs-paginate';
 import { TransactionService } from './transaction.service';
@@ -6,7 +14,15 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { TransactionDateRangeDto, TransactionDateDto, TransactionIdDto, AccountIdDto, AccountIdAndDateDto } from './dto/common-transaction.dto';
+import {
+  AccountIdDto,
+  AccountIdAndDateDto,
+  TransactionDateDto,
+  TransactionDateRangeDto,
+  TransactionIdDto,
+} from './dto/common-transaction.dto';
+import { RoleGuard } from '../auth/guards/roles.guard';
+import { Role } from '../user/interfaces/user.interface';
 
 @ApiTags('Transactions')
 @Controller('/v1/transactions')
@@ -15,7 +31,7 @@ export class TransactionController {
 
   @Get('all')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async findAll(@Query() query: PaginateQuery) {
     return await this.transactionService.findAll(query);
   }

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsISO8601, Length } from 'class-validator';
+import { IsNotEmpty, IsISO8601, IsUUID } from 'class-validator';
 
 export class TransactionDateRangeDto {
   @ApiProperty()
@@ -20,21 +20,17 @@ export class TransactionDateDto {
 }
 
 export class TransactionIdDto {
-  @Length(36, 36, {
-    message: 'Transaction ID must be at least 36 characters long',
-  })
+  @IsUUID(4)
   readonly transactionId: string;
 }
 
 export class AccountIdDto {
-  @Length(36, 36, { message: 'Account ID must be at least 36 characters long' })
+  @IsUUID(4)
   readonly accountId: string;
 }
 
 export class AccountIdAndDateDto {
-  @Length(36, 36, {
-    message: 'Account ID must be at least 36 characters long',
-  })
+  @IsUUID(4)
   readonly accountId: string;
 
   @IsNotEmpty()

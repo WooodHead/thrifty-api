@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { PaginateQuery } from 'nestjs-paginate';
 import { AccountService } from './account.service';
@@ -6,24 +17,35 @@ import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { UserDecorator } from '../user/decorators/user.decorator';
 import { User } from '../user/entities/user.entity';
-import { AccountIdDto, AccountNumberDto, AccountNameDto, DepositOrWithdrawMoneyDto, TransferFundsToInternalDto, TransferFundsToExternalDto } from './dto/common-account.dto';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import {
+  AccountIdDto,
+  AccountNameDto,
+  AccountNumberDto,
+  DepositOrWithdrawMoneyDto,
+  TransferFundsToInternalDto,
+  TransferFundsToExternalDto
+} from './dto/common-account.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RoleGuard } from '../auth/guards/roles.guard';
+import { Role } from '../user/interfaces/user.interface';
 
 @ApiTags('Account')
-@Controller('account')
+@Controller('/v1/accounts')
 export class AccountController {
   constructor(private readonly accountService: AccountService) { }
 
   @ApiBearerAuth()
-  @Get()
+  @Get('all')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   findAll(@Query() query: PaginateQuery) {
     return this.accountService.findAll(query);
   }
 
+  // Global Caching disabled for this route, Caching is done at Service-level
   @ApiBearerAuth()
   @Get('get-account-by-user')
   @UseGuards(JwtAuthGuard)
-  findAccountByUser(@Query() query: PaginateQuery, @UserDecorator('id') id: string,) {
+  findAccountByUser(@Query() query: PaginateQuery, @UserDecorator('id') id: string) {
     return this.accountService.findAccountByUser(id, query);
   }
 
@@ -37,7 +59,7 @@ export class AccountController {
 
   @ApiBearerAuth()
   @Get('get-by-account-number/:accountNumber')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   findByAccountNumber(@Param() params: AccountNumberDto) {
     const { accountNumber } = params
     return this.accountService.findByAccountNumber(+accountNumber);
@@ -45,7 +67,7 @@ export class AccountController {
 
   @ApiBearerAuth()
   @Get('get-by-account-name/:accountName')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   findByAccountName(@Param() params: AccountNameDto) {
     const { accountName } = params
     return this.accountService.findByAccountName(accountName);
@@ -53,7 +75,7 @@ export class AccountController {
 
   @ApiBearerAuth()
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   findOne(@Param() params: AccountIdDto) {
     const { accountId } = params
     return this.accountService.findOne(accountId);
@@ -68,6 +90,7 @@ export class AccountController {
 
   @ApiBearerAuth()
   @Post('deposit-funds')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   depositFunds(@Body() transactionInfo: DepositOrWithdrawMoneyDto, @UserDecorator() user: User) {
     return this.accountService.depositFunds(transactionInfo, user)
@@ -75,6 +98,7 @@ export class AccountController {
 
   @ApiBearerAuth()
   @Post('withdraw-funds')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   withdrawFunds(@Body() transactionInfo: DepositOrWithdrawMoneyDto, @UserDecorator() user: User) {
     return this.accountService.withdrawFunds(transactionInfo, user)
@@ -82,6 +106,7 @@ export class AccountController {
 
   @ApiBearerAuth()
   @Post('internal-transfer')
+  @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   internalTransfer(@Body() transferInternalDto: TransferFundsToInternalDto, @UserDecorator() user: User) {
     return this.accountService.internalFundsTransfer(transferInternalDto, user)
@@ -99,8 +124,8 @@ export class AccountController {
     return this.accountService.update(+id, updateAccountDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.accountService.remove(+id);
+  @Delete(':accountNumber')
+  remove(@Param('accountNumber') accountNumber: string) {
+    return this.accountService.remove(+accountNumber);
   }
 }

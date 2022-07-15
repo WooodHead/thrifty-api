@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length, IsInt, Min, IsEnum } from 'class-validator';
-import { AccountStatus, AccountType } from '../interfaces/account.interface';
+import { IsString, Length, IsInt, Min, IsEnum, IsUUID, ArrayNotEmpty } from 'class-validator';
+import { AccountType } from '../interfaces/account.interface';
 
 export class CreateAccountDto {
     @ApiProperty()
@@ -14,10 +14,9 @@ export class CreateAccountDto {
     openingBalance: number;
 
     @ApiProperty()
-    @Length(36, 36, {
-        each: true,
-        message: 'Each account holder ID must be 36 characters long',
-    })
+    @IsUUID(4, { each: true })
+    @Length(36, 36, { each: true })
+    @ArrayNotEmpty()
     accountHolders: string[];
 
     @ApiProperty()

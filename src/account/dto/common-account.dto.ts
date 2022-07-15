@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsObject, IsOptional, IsString, Length, Min, MinLength, ValidateNested } from 'class-validator';
+import { IsInt, IsObject, IsOptional, IsString, IsUUID, Length, Min, MinLength, ValidateNested } from 'class-validator';
 import { ExternalAccountDto } from '../../transaction/dto/create-transaction.dto';
 
 export class CheckAccountBalanceDto {
@@ -11,9 +11,7 @@ export class CheckAccountBalanceDto {
 };
 
 export class AccountIdDto {
-    @Length(36, 36, {
-        message: 'Account ID must be 36 characters long',
-    })
+    @IsUUID(4)
     readonly accountId: string;
 }
 
@@ -51,7 +49,7 @@ export class DepositOrWithdrawMoneyDto {
 export class TransferFundsToInternalDto {
     @ApiProperty()
     @IsString()
-    @Length(10)
+    @Length(10, 10, { message: 'Invalid Account Number, fromAccount must be 10 characters long' })
     fromAccount: string;
 
     @ApiProperty()
@@ -61,12 +59,12 @@ export class TransferFundsToInternalDto {
 
     @ApiProperty()
     @IsString()
-    @Length(10)
+    @Length(10, 10, { message: 'Invalid Account Number, toInternalAccount must be 10 characters long' })
     toInternalAccount: string;
 
     @ApiProperty()
     @IsString()
-    @MinLength(1, { message: 'Transfer Account Name length must be greater than Zero'})
+    @MinLength(1, { message: 'Transfer Account Name length must be greater than Zero' })
     toInternalAccountName: string;
 }
 
@@ -81,7 +79,7 @@ export class TransferFundsToExternalDto {
     @Min(1, { message: 'Transaction Amount must be greater than Zero' })
     amountToTransfer: number;
 
-    @IsOptional()
+    @ApiProperty()
     @IsObject()
     @ValidateNested()
     @Type(() => ExternalAccountDto)

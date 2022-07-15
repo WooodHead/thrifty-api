@@ -1,10 +1,9 @@
-import { IsString, IsNotEmpty, IsInt, Min } from "class-validator";
+import { IsString, IsNotEmpty, IsInt, Min, IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class UpdateGroupMemberDto {
     @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
+    @IsUUID(4)
     userId: string;
 
     @ApiProperty()

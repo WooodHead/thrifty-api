@@ -7,7 +7,7 @@ import { TransactionMode, TransactionType, TransactionStatus, IExternalAccount }
 @Entity()
 export class Transaction extends AbstractEntity {
 
-  @Column('time without time zone')
+  @Column('timestamp without time zone')
   transactionDate: Date;
 
   @Column('varchar', { length: 255, default: '' })

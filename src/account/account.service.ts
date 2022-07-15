@@ -1,6 +1,7 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER, ConflictException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Any } from 'typeorm';
+import { Cache } from 'cache-manager';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
@@ -18,6 +19,7 @@ export class AccountService {
     @InjectRepository(Account) private readonly accountRepository: Repository<Account>,
     @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
 
   async findAll(query: PaginateQuery): Promise<Paginated<Account>> {
@@ -56,7 +58,7 @@ export class AccountService {
     try {
       const account = await this.accountRepository.findOneBy({ accountNumber });
       if (account) return account;
-      throw new NotFoundException(`Account with name: ${name} not found on this server`);
+      throw new NotFoundException(`Account with accountNumber: ${accountNumber} not found on this server`);
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -80,13 +82,29 @@ export class AccountService {
     }
   }
 
-  async findAccountByUser(userId: string, query: PaginateQuery): Promise<Paginated<Account>> {
+  // Caching implemented at Sevice level
+  async findAccountByUser(userId: string, query: PaginateQuery): Promise<Paginated<Account> | any> {
     try {
-      return await paginate(query, this.accountRepository, {
+
+      const data = await this.cacheManager.get(`accounts-by-user/${userId}`);
+
+      if (data) return { fromCache: true, data };
+
+      // Query builder used here instead of findOptions to fix cannot query many-to-many relations error
+      const queryBuilder = this.accountRepository
+        .createQueryBuilder('account')
+        .leftJoin('account.accountHolders', 'user')
+        .where('user.id =:userId', { userId })
+
+      const accounts = await paginate<Account>(query, queryBuilder, {
         sortableColumns: ['createdAt'],
-        defaultSortBy: [['createdAt', 'DESC']],
-        where: { accountHolders: { id: userId } },
-      });
+        defaultSortBy: [['createdAt', 'DESC']]
+      })
+
+      await this.cacheManager.set(`accounts-by-user/${userId}`, accounts, { ttl: 300 })
+
+      return accounts;
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -105,7 +123,7 @@ export class AccountService {
 
       if (account) return account.accountBalance;
 
-      throw new NotFoundException(`Invalid user/account number combination`);
+      throw new ForbiddenException(`Invalid user/account number combination`);
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -125,9 +143,9 @@ export class AccountService {
         accountHolders: { id: user.id }
       });
 
-      if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
+      if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
       account.accountBalance = +account.accountBalance + transactionAmount;
-      account.bookBalance = +account.accountBalance + transactionAmount;
+      account.bookBalance = +account.bookBalance + transactionAmount;
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -165,11 +183,11 @@ export class AccountService {
         accountHolders: { id: user.id }
       });
 
-      if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
+      if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
 
       if (account.accountBalance < transactionAmount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
       account.accountBalance = +account.accountBalance - transactionAmount;
-      account.bookBalance = +account.accountBalance - transactionAmount;
+      account.bookBalance = +account.bookBalance - transactionAmount;
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -206,7 +224,7 @@ export class AccountService {
         accountHolders: { id: user.id }
       });
 
-      if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
+      if (!account) throw new ForbiddenException(`fromAccount: Invalid User/Account number combination`);
       if (account.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
 
       const toAccount = await this.accountRepository.findOneBy({
@@ -214,14 +232,16 @@ export class AccountService {
         accountName: toInternalAccountName
       });
 
-      if (!toAccount) throw new NotFoundException(`Invalid Account number/name combination`);
+      if (!toAccount) throw new NotFoundException(`toAccount: Invalid Account number/name combination`);
+
+      if (account.accountNumber === toAccount.accountNumber) throw new ConflictException('You cannot make transfers between the same account')
 
       // Adjust both accounts
       account.accountBalance = +account.accountBalance - amountToTransfer;
-      account.bookBalance = +account.accountBalance - amountToTransfer;
+      account.bookBalance = +account.bookBalance - amountToTransfer;
 
       toAccount.accountBalance = +toAccount.accountBalance + amountToTransfer;
-      toAccount.bookBalance = +toAccount.accountBalance + amountToTransfer;
+      toAccount.bookBalance = +toAccount.bookBalance + amountToTransfer;
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -260,12 +280,12 @@ export class AccountService {
         accountHolders: { id: user.id }
       });
 
-      if (!account) throw new NotFoundException(`Invalid User/Account number combination`);
+      if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
       if (account.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
 
       // Deduct Funds from internal account
       account.accountBalance = +account.accountBalance - amountToTransfer;
-      account.bookBalance = +account.accountBalance - amountToTransfer;
+      account.bookBalance = +account.bookBalance - amountToTransfer;
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -323,7 +343,16 @@ export class AccountService {
     return `This action updates a #${id} account`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} account`;
+  async remove(accountNumber: number) {
+    try {
+      const accountToDelete = await this.accountRepository.findOneBy({ accountNumber })
+      return await this.accountRepository.remove(accountToDelete)
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    };
   }
 }

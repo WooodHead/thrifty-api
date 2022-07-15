@@ -1,4 +1,4 @@
-import { CacheInterceptor, CacheModule, Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { DefaultAdminModule, AdminUserEntity } from 'nestjs-admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -14,6 +14,12 @@ import { UserModule } from './user/user.module';
 import { SavingsGroupModule } from './savings-group/savings-group.module';
 import { AccountModule } from './account/account.module';
 import { TransactionModule } from './transaction/transaction.module';
+import { User } from './user/entities/user.entity';
+import { Account } from './account/entities/account.entity';
+import { Transaction } from './transaction/entities/transaction.entity';
+import { SavingsGroup } from './savings-group/entities/savings-group.entity';
+import { UserToSavingsGroup } from './common/entities/user-to-savingsgroup.entity';
+import { HttpCacheInterceptor } from './common/interceptors/http-cache-interceptor';
 import configuration from './config/configuration';
 
 @Module({
@@ -32,10 +38,10 @@ import configuration from './config/configuration';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: ['dist/**/entities/*.entity.js', AdminUserEntity],
+        entities: [Account, SavingsGroup, Transaction, User, UserToSavingsGroup, AdminUserEntity],
         migrations: ['dist/migrations/*.js'],
         migrationsTableName: 'migrations_history',
-        synchronize: false,
+        synchronize: true,    // Auto-Sync currently enabled here because of -d /path-to-datasource option issue with typeorm:generate in package.json scripts for typeorm version ^0.3.x
         ssl: {
           rejectUnauthorized: false
         }
@@ -51,9 +57,8 @@ import configuration from './config/configuration';
     }),
 
     CacheModule.registerAsync<RedisClientOptions>({
+      isGlobal: true,
       useFactory: async (configService: ConfigService) => ({
-        
-        isGlobal: true,
         ttl: 300,
         max: 1000,
 
@@ -78,7 +83,7 @@ import configuration from './config/configuration';
     AppService,
     {
       provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
+      useClass: HttpCacheInterceptor,   // Custom CacheInterceptor used here
     },
   ],
 })
