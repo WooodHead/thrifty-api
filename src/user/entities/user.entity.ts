@@ -44,7 +44,7 @@ export class User extends AbstractEntity {
     @Column('enum', {
         enum: Role,
         default: [Role.USER],
-        array: true
+        array: true,
     })
     roles: Role[];
 
@@ -56,7 +56,7 @@ export class User extends AbstractEntity {
 
     @ManyToMany(() => Account, account => account.accountHolders)
     accounts: Account[];
-    
+
     @OneToMany(() => Transaction, (transaction) => transaction.customer)
     transactions: Transaction[];
 

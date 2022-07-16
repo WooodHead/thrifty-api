@@ -43,6 +43,9 @@ export class Transaction extends AbstractEntity {
   @Column('jsonb', { nullable: true })
   toExternalAccount: IExternalAccount;
 
+  @Column('jsonb', { nullable: true })
+  billPaymentDetails: any;
+
   @Column('varchar', { length: 255, nullable: true })
   transactionRef: string;
 

@@ -1,18 +1,34 @@
 # Thrifty - API
 
+## About
+
+This is a fictional financial services provider which offers traditonal financial services and some other value-added services. New customers can open a new account while an existing account holder can perform the following:
+
+* Open single or multiple accounts
+* Check their account balance
+* Deposit Funds into their Account(s)
+* Withdraw Funds from their Account(s)
+* Transfer Funds Between Internal Account(s)
+* Transfer Funds From their Account(s) to External Accounts
+* Make Bill Payments (Airtime top-ups, Cable TV, Data, Electricity, Internet Subscriptions) via a third-party payment provider
+* View All their transaction history
+* Close their account
+
+Other Value-added Services includes a Contibutory Savings Scheme where users have access to the following services:
+
+* Create Savings Group with the creator becoming the Group Admin
+* Group Admins can add or remove group members
+* Contribute Funds to the Savings Group
+
+
 ## Authors
 
 - [@greazleay](https://www.github.com/greazleay)
 
-## About
-This is a fictional financial services provider which offers traditonal financial services and some other value-added services. New customers can open a new account while an existing account holder can perform the following:
-
-* Open multiple accounts
-* Check their account balance
-* Withdraw money from their account
-* Close their account
 
 ## Tech Stack
+
+**Server:** Node
 
 * [TypeScript](https://www.typescriptlang.org/)
 * [NestJS](https://nestjs.com/)
@@ -23,26 +39,85 @@ This is a fictional financial services provider which offers traditonal financia
 * [Jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
 * [Jest](https://jestjs.io/)
 
-## Endpoints 
 
-* Full API Documentation is available [here](https://api-thrifty.herokuapp.com/api-docs)
+## Getting Started
 
-## Available Routes:
+First, run the development server:
+
+```bash
+  yarn start:dev
+  # or
+  npm run start:dev
+```
+
+
+## Documentation
+
+Full API Documentation is available [here](https://api-thrifty.herokuapp.com/api-docs)
+
+
+## API Reference
 
 Some of the available routes are listed below:
 
-### Base URL 
-
-* [here](https://api-thrifty.herokuapp.com/v1)
-
 #### Authentication Routes
-* User Login:                                                   POST    /auth/login
-* User Logout:                                                  GET     /auth/logout
-* Refresh Token:                                                POST    /auth/refresh-token 
+
+##### Auth Login
+
+```http
+  POST /auth/login
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `email` | `string` | **Required**. Your Valid Email |
+| `password` | `string` | **Required**. Your Valid Password |
+
+##### Auth Logout
+
+```http
+  POST /auth/logout
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `access_token`      | `string` | **Required**. Valid Access Token |
+
+##### Auth Refresh Token
+
+```http
+  POST /auth/refresh-token
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `cookies`      | `string` | **Required**. Valid Cookie containing refresh token |
+
 
 #### User Routes
-* Create User:                                                  POST    /users/create
-* User Info:                                                    GET     /users/userinfo
+
+##### Register
+
+```http
+  POST /users/register
+```
+
+| Parameter | Type     | Description                |
+| :-------- | :------- | :------------------------- |
+| `email` | `string` | **Required**. Your Valid Email |
+| `password` | `string` | **Required**. Password |
+| `firstName` | `string` | **Required**. User's first name |
+| `lastName` | `string` | **Required**. User's last name |
+
+##### Get User Info
+
+```http
+  GET /users/userinfo
+```
+
+| Parameter | Type     | Description                       |
+| :-------- | :------- | :-------------------------------- |
+| `access_token`      | `string` | **Required**. Valid Access Token |
 
 #### Password Reset Routes
 * Verification Code:                                            GET     /users/get-verification-code/:email
@@ -61,3 +136,18 @@ Some of the available routes are listed below:
 * Add Member to Savings Group                                   PATCH   /savings-group/add-group-member
 * Remove Member from Savings Group                              PATCH   /savings-group/remove-group-member
 * Put Add Savings Group Transaction                             PATCH   /savings-group/contribute-funds
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+
+
+## 🔗 Links
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://pollaroid.net/)
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/siezes)
+
+
+## Badges
+
+[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
+[![Language](https://img.shields.io/github/languages/count/greazleay/thrifty-api)](https://github.com/greazleay/thrifty-api/)

@@ -14,7 +14,7 @@ import { UpdateUserPasswordDto } from './dto/update-user.dto';
 export class UserController {
     constructor(private readonly usersService: UserService) { }
 
-    @Post('create')
+    @Post('register')
     @ApiConsumes('multipart/form-data')
     @ApiProduces('application/json')
     create(@Body() createUserDto: CreateUserDto) {

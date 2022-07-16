@@ -11,6 +11,9 @@ import { Account } from './entities/account.entity';
 import { TransactionStatus, TransactionType, TransactionMode } from '../transaction/interfaces/transaction.interface'
 import { generateAccountNumber } from '../utils/generateAccountNumber';
 import { Transaction } from '../transaction/entities/transaction.entity';
+import { BillPaymentService } from '../services/bill-payment/bill-payment.service';
+import { PayBillsDto } from 'src/services/bill-payment/dto/bill-payment.dto';
+import { generateTransactionRef } from '../utils/generateTrsnactionRef';
 
 @Injectable()
 export class AccountService {
@@ -19,7 +22,8 @@ export class AccountService {
     @InjectRepository(Account) private readonly accountRepository: Repository<Account>,
     @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly billPaymentService: BillPaymentService,
   ) { }
 
   async findAll(query: PaginateQuery): Promise<Paginated<Account>> {
@@ -144,8 +148,11 @@ export class AccountService {
       });
 
       if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
+      
+      // Credit the Respective Account
       account.accountBalance = +account.accountBalance + transactionAmount;
       account.bookBalance = +account.bookBalance + transactionAmount;
+      await this.accountRepository.save(account);
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -159,8 +166,6 @@ export class AccountService {
       newTransaction.toInternalAccount = account;
       newTransaction.customer = user
       newTransaction.accountBalance = account.accountBalance;
-
-      await this.accountRepository.save(account);
 
       return await this.transactionRepository.save(newTransaction);
     } catch (error) {
@@ -184,10 +189,12 @@ export class AccountService {
       });
 
       if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
-
       if (account.accountBalance < transactionAmount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      
+      // Debit the Respective Account
       account.accountBalance = +account.accountBalance - transactionAmount;
       account.bookBalance = +account.bookBalance - transactionAmount;
+      await this.accountRepository.save(account);
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -201,8 +208,6 @@ export class AccountService {
       newTransaction.fromAccount = account;
       newTransaction.customer = user
       newTransaction.accountBalance = account.accountBalance;
-
-      await this.accountRepository.save(account);
 
       return await this.transactionRepository.save(newTransaction);
     } catch (error) {
@@ -236,12 +241,14 @@ export class AccountService {
 
       if (account.accountNumber === toAccount.accountNumber) throw new ConflictException('You cannot make transfers between the same account')
 
-      // Adjust both accounts
+      // Debit and Credit Respective Accounts
       account.accountBalance = +account.accountBalance - amountToTransfer;
       account.bookBalance = +account.bookBalance - amountToTransfer;
 
       toAccount.accountBalance = +toAccount.accountBalance + amountToTransfer;
       toAccount.bookBalance = +toAccount.bookBalance + amountToTransfer;
+
+      await this.accountRepository.save([account, toAccount]);
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -256,8 +263,6 @@ export class AccountService {
       newTransaction.toInternalAccount = toAccount;
       newTransaction.customer = user;
       newTransaction.accountBalance = account.accountBalance;
-
-      await this.accountRepository.save([account, toAccount]);
 
       return await this.transactionRepository.save(newTransaction);
 
@@ -283,9 +288,10 @@ export class AccountService {
       if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
       if (account.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
 
-      // Deduct Funds from internal account
+      // Debit the Respective internal account
       account.accountBalance = +account.accountBalance - amountToTransfer;
       account.bookBalance = +account.bookBalance - amountToTransfer;
+      await this.accountRepository.save(account);
 
       // Prepare and create transaction record
       const newTransaction = new Transaction();
@@ -301,8 +307,6 @@ export class AccountService {
       newTransaction.customer = user;
       newTransaction.accountBalance = account.accountBalance;
 
-      await this.accountRepository.save(account);
-
       return await this.transactionRepository.save(newTransaction);
 
     } catch (error) {
@@ -312,6 +316,47 @@ export class AccountService {
         error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async billPayment(payBillDto: PayBillsDto, user: User, accountNumber: number) {
+
+    // Search for account and check if there is sufficient balance to cover the transaction amount
+    const account = await this.accountRepository.findOneBy({
+      accountNumber,
+      accountHolders: { id: user.id }
+    });
+
+    if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
+    if (account.accountBalance < payBillDto.amount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+
+    // Initiate Payment Request with Third-Party Bill-Payment Provider
+    payBillDto.reference = generateTransactionRef();
+    const paymentDetails = await this.billPaymentService.payBills(payBillDto);
+
+    if (paymentDetails.status === 'success') {
+      // Debit Customer's Account
+      account.accountBalance = +account.accountBalance - payBillDto.amount;
+      account.bookBalance = +account.bookBalance - payBillDto.amount;
+      await this.accountRepository.save(account);
+
+      // Prepare and create transaction record
+      const newTransaction = new Transaction();
+
+      newTransaction.transactionDate = new Date()
+      newTransaction.description = `Bill Payment of amount ${payBillDto.amount} made by ${user.firstName + ' ' + user.lastName}`;
+      newTransaction.transactionAmount = payBillDto.amount;
+      newTransaction.transactionMode = TransactionMode.DEBIT;
+      newTransaction.transactionType = TransactionType.BILLPAYMENT;
+      newTransaction.transactionStatus = TransactionStatus.SUCCESSFUL;
+      newTransaction.fromAccount = account;
+      newTransaction.billPaymentDetails = paymentDetails
+      newTransaction.customer = user
+      newTransaction.accountBalance = account.accountBalance;
+
+      return await this.transactionRepository.save(newTransaction);
+    }
+
+    return { tx_status: 'IN PROGRESS', tx_ref: payBillDto.reference };
   }
 
   async create(createAccountDto: CreateAccountDto) {
