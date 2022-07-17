@@ -34,14 +34,22 @@ export class SavingsGroupService {
 
   async findOne(id: string): Promise<SavingsGroup> {
     try {
-      const transaction = await this.savingsGroupRepository
+      const savingsGroup = await this.savingsGroupRepository
         .createQueryBuilder('savingsGroup')
         .where('savingsGroup.id = :id', { id })
         .leftJoinAndSelect('savingsGroup.groupAdmin', 'groupAdmin')
-        .select(['savingsGroup.id', 'savingsGroup.groupName', 'savingsGroup.groupType', 'savingsGroup.groupDescription', 'savingsGroup.createdAt', 'savingsGroup.updatedAt', 'groupAdmin.id'])
+        .select([
+          'savingsGroup.id',
+          'savingsGroup.groupName',
+          'savingsGroup.groupType',
+          'savingsGroup.groupDescription',
+          'savingsGroup.createdAt',
+          'savingsGroup.updatedAt',
+          'groupAdmin.id'
+        ])
         .leftJoinAndSelect('savingsGroup.groupMembers', 'groupMembers')
         .getOne();
-      if (transaction) return transaction;
+      if (savingsGroup) return savingsGroup;
       throw new NotFoundException(`Transaction with ID: ${id} not found on this server`);
     } catch (error) {
       console.error(error);
