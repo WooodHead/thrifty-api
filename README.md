@@ -40,16 +40,32 @@ Other Value-added Services includes a Contibutory Savings Scheme where users hav
 * [Jest](https://jestjs.io/)
 
 
-## Getting Started
-
-First, run the development server:
+## Installation
 
 ```bash
-  yarn start:dev
+  yarn
   # or
-  npm run start:dev
+  npm install
 ```
 
+## Running the app
+
+```bash
+# development
+$ yarn start
+  # or
+$ npm run start
+
+# watch mode
+$ yarn start:dev
+  # or
+$ npm run start:dev
+
+# production mode
+$ yarn start:prod
+  # or
+$ npm run start:prod
+```
 
 ## Documentation
 
