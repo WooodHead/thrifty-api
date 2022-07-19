@@ -20,10 +20,11 @@ export class AuthService {
         try {
             const user = await this.usersService.findOneByEmail(email);
             if (user && await user.isPasswordValid(pass)) {
-                await this.usersRepository.update(user.id, { lastLogin: new Date() });
+                user.lastLogin = new Date();
+                await this.usersRepository.save(user);
                 return user;
             };
-            throw new UnauthorizedException('Invalid Credentials');
+            throw new UnauthorizedException('INVALID CREDENTIALS');
         } catch (error) {
             throw new HttpException(error.message, error.status);
         }
@@ -79,7 +80,7 @@ export class AuthService {
         try {
             const logOutUser = await this.usersRepository.findOneBy({ id: user.id });
             const personalKey = await logOutUser.generatePersonalKey();
-            await this.usersRepository.update(user.id, { personalKey });
+            await this.usersRepository.save(user);
         } catch (error) {
             console.error(error);
             throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
