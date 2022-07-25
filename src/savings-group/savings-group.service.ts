@@ -64,7 +64,9 @@ export class SavingsGroupService {
     try {
       const savingsGroup = await this.savingsGroupRepository.findOne({ where: { groupName: name } });
       if (savingsGroup) return savingsGroup;
+
       throw new NotFoundException(`Savings Group with name: ${name} not found on this server`);
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -78,10 +80,14 @@ export class SavingsGroupService {
     try {
       const savingsGroup = await this.savingsGroupRepository.findOne({ where: { groupName: createSavingsGroupDto.groupName } });
       if (savingsGroup) throw new ConflictException(`SavingsGroup with name: ${createSavingsGroupDto.groupName} already exists`);
+
       createSavingsGroupDto.groupAdmin = user;
+
       const newSavingsGroup = this.savingsGroupRepository.create(createSavingsGroupDto);
       await this.savingsGroupRepository.save(newSavingsGroup);
+
       return newSavingsGroup;
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -91,27 +97,36 @@ export class SavingsGroupService {
     }
   }
 
-  async addSavingsGroupMember(addMemberDto: UpdateGroupMemberDto) {
+  async addSavingsGroupMember(addMemberDto: UpdateGroupMemberDto, user: User) {
     try {
       const { userId, savingsGroupId } = addMemberDto;
 
       // check if user exists
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user) throw new NotFoundException(`User with ID: ${userId} not found on this server`);
+      const userToAdd = await this.userRepository.findOneBy({ id: userId });
+      if (!userToAdd) throw new NotFoundException(`User with ID: ${userId} not found on this server`);
 
       // check if savingsGroup exists
-      const savingsGroup = await this.savingsGroupRepository.findOne({ where: { id: savingsGroupId } });
+      const savingsGroup = await this.savingsGroupRepository.findOne({
+        relations: { groupAdmin: true },
+        where: { id: savingsGroupId }
+      });
       if (!savingsGroup) throw new NotFoundException(`SavingsGroup with ID: ${savingsGroupId} not found on this server`);
 
-      // check if user is already a member of the savingsGroup
-      const userAlreadyAdded = await this.userToSavingsGroupRepository.findOne({ where: { ...addMemberDto } });
-      if (userAlreadyAdded) throw new ConflictException(`User with ID: ${userId} already belongs to savingsGroup with ID: ${savingsGroupId}`);
+      // Check if the user making the request is the savingsGroup Admin
+      if (savingsGroup.groupAdmin.id === user.id) {
+        // check if user is already a member of the savingsGroup
+        const userAlreadyAdded = await this.userToSavingsGroupRepository.findOne({ where: { ...addMemberDto } });
+        if (userAlreadyAdded) throw new ConflictException(`User with ID: ${userId} already belongs to savingsGroup with ID: ${savingsGroupId}`);
 
-      // add user to savingsGroup
-      const addUserToGroup = this.userToSavingsGroupRepository.create(addMemberDto);
-      await this.userToSavingsGroupRepository.save(addUserToGroup);
+        // add user to savingsGroup
+        const addUserToGroup = this.userToSavingsGroupRepository.create(addMemberDto);
+        await this.userToSavingsGroupRepository.save(addUserToGroup);
 
-      return { message: `User with ID: ${userId} added to savingsGroup with ID: ${savingsGroupId}` };
+        return { message: `User with ID: ${userId} added to savingsGroup with ID: ${savingsGroupId}` };
+      }
+
+      throw new ForbiddenException('You are not the Admin of this Savings Group, please contact the group admin to add a new member')
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -121,7 +136,7 @@ export class SavingsGroupService {
     }
   }
 
-  async removeSavingsGroupMember(removeMemberDto: UpdateGroupMemberDto) {
+  async removeSavingsGroupMember(removeMemberDto: UpdateGroupMemberDto, user: User) {
     try {
       const { userId, savingsGroupId } = removeMemberDto;
 
@@ -130,19 +145,28 @@ export class SavingsGroupService {
       if (!user) throw new NotFoundException(`User with ID: ${userId} not found on this server`);
 
       // check if savingsGroup exists
-      const savingsGroup = await this.findOne(savingsGroupId);
+      const savingsGroup = await this.savingsGroupRepository.findOne({
+        relations: { groupAdmin: true },
+        where: { id: savingsGroupId }
+      });
       if (!savingsGroup) throw new NotFoundException(`SavingsGroup with ID: ${savingsGroupId} not found on this server`);
 
-      // Check if user is a member of the savings group
-      const { groupMembers } = savingsGroup;
-      const userIsMember = groupMembers.some(member => member.userId === user.id);
-      if (!userIsMember) throw new NotFoundException(`User with ID: ${userId} is not a member of savingsGroup with ID: ${savingsGroupId}`);
+      // Check if the user making the request is the savingsGroup Admin
+      if (savingsGroup.groupAdmin.id === user.id) {
+        // Check if user is a member of the savings group
+        const { groupMembers } = savingsGroup;
+        const userIsMember = groupMembers.some(member => member.userId === user.id);
+        if (!userIsMember) throw new NotFoundException(`User with ID: ${userId} is not a member of savingsGroup with ID: ${savingsGroupId}`);
 
-      // remove user from savingsGroup
-      const removeUserFromGroup = await this.userToSavingsGroupRepository.findOne({ where: { ...removeMemberDto } });
-      await this.userToSavingsGroupRepository.remove(removeUserFromGroup);
+        // remove user from savingsGroup
+        const removeUserFromGroup = await this.userToSavingsGroupRepository.findOne({ where: { ...removeMemberDto } });
+        await this.userToSavingsGroupRepository.remove(removeUserFromGroup);
 
-      return { message: `User with ID: ${userId} removed from savingsGroup with ID: ${savingsGroupId}` };
+        return { message: `User with ID: ${userId} removed from savingsGroup with ID: ${savingsGroupId}` };
+      }
+
+      throw new ForbiddenException('You are not the Admin of this Savings Group, please contact the group admin to remove a member from the group')
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -152,13 +176,9 @@ export class SavingsGroupService {
     }
   }
 
-  async contriubeFundsToGroup(userId: string, contibuteFundsDto: ContributeFundsDto) {
+  async contriubeFundsToGroup(user: User, contibuteFundsDto: ContributeFundsDto) {
     try {
       const { savingsGroupId, amountToSave } = contibuteFundsDto;
-
-      // check if user exists
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user) throw new NotFoundException(`User with ID: ${userId} not found on this server`);
 
       // check if savingsGroup exists
       const savingsGroup = await this.findOne(savingsGroupId);
@@ -167,14 +187,14 @@ export class SavingsGroupService {
       // Check if user is a member of the savings group
       const { groupMembers } = savingsGroup;
       const userIsMember = groupMembers.some(member => member.userId === user.id);
-      if (!userIsMember) throw new ForbiddenException(`User with ID: ${userId} is not a member of savingsGroup with ID: ${savingsGroupId}`);
+      if (!userIsMember) throw new ForbiddenException(`User with ID: ${user.id} is not a member of savingsGroup with ID: ${savingsGroupId}`);
 
-      const saveToGroup = await this.userToSavingsGroupRepository.findOne({ where: { userId, savingsGroupId } });
+      const saveToGroup = await this.userToSavingsGroupRepository.findOne({ where: { userId: user.id, savingsGroupId } });
       saveToGroup.contributedFunds = +saveToGroup.contributedFunds + amountToSave;
 
       await this.userToSavingsGroupRepository.save(saveToGroup);
 
-      return { message: `SUCESS!!! ${amountToSave} contributed to ${savingsGroup.groupName} group, new savings balance is ${saveToGroup.contributedFunds}` }
+      return { message: `SUCCESS!!! ${amountToSave} contributed to ${savingsGroup.groupName} group, new savings balance is ${saveToGroup.contributedFunds}` }
 
     } catch (error) {
       console.error(error);

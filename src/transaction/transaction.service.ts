@@ -3,10 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Equal, Between, Repository } from 'typeorm';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
 import { Transaction } from './entities/transaction.entity';
-import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { TransactionDateRangeDto } from './dto/common-transaction.dto';
-import { generateTransactionRef } from '../utils/generateTrsnactionRef';
 
 @Injectable()
 export class TransactionService {

@@ -13,7 +13,6 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
-  ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
@@ -411,6 +410,9 @@ export class AccountController {
   }
 
   @Delete(':accountNumber')
+  @ApiOperation({
+    description: 'Deletes an account. NOT YET COMPLETE'
+  })
   async remove(@Param('accountNumber') accountNumber: string) {
     return await this.accountService.remove(+accountNumber);
   }

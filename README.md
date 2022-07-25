@@ -135,24 +135,6 @@ Some of the available routes are listed below:
 | :-------- | :------- | :-------------------------------- |
 | `access_token`      | `string` | **Required**. Valid Access Token |
 
-#### Password Reset Routes
-* Verification Code:                                            GET     /users/get-verification-code/:email
-* Reset Password                                                PUT     /users/reset-password
-* Change Password                                               PUT     /users/change-password
-* Delete User account                                           DEL     /users/:id
-
-#### Savings Group Routes
-* Get All Savings Group                                         GET     /savings-group/all
-* Get Savings Group by name                                     GET     /savings-group/by-name/:name
-* Get Savings Group by Id                                       GET     /savings-group/:id
-* Get Members of a Savings Group                                GET     /savings-group/:id/members
-* Create Savings Group                                          POST    /savings-group/create
-* Update Savings Group                                          PATCH   /savings-group/:id
-* Delete Savings Group                                          DELETE  /savings-group/:id
-* Add Member to Savings Group                                   PATCH   /savings-group/add-group-member
-* Remove Member from Savings Group                              PATCH   /savings-group/remove-group-member
-* Put Add Savings Group Transaction                             PATCH   /savings-group/contribute-funds
-
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)

@@ -7,7 +7,19 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse
+} from '@nestjs/swagger';
 import { PaginateQuery } from 'nestjs-paginate';
 import { TransactionService } from './transaction.service';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
@@ -24,21 +36,50 @@ import {
 import { RoleGuard } from '../auth/guards/roles.guard';
 import { Role } from '../user/interfaces/user.interface';
 
+@Controller('transactions')
 @ApiTags('Transactions')
-@Controller('/v1/transactions')
+@ApiBearerAuth()
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
   @Get('all')
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns All Transactions on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findAll(@Query() query: PaginateQuery) {
     return await this.transactionService.findAll(query);
   }
 
   @Get('by-date-range')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns All Transactions within a given date range on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions within the specified date range on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByDateRange(
     @Body() dateRangeDto: TransactionDateRangeDto,
     @Query() query: PaginateQuery,
@@ -47,8 +88,22 @@ export class TransactionController {
   }
 
   @Get('by-date/:searchDate')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns All Transactions done on a given date on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions for the specified date on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByDate(
     @Param() params: TransactionDateDto,
     @Query() query: PaginateQuery,
@@ -57,25 +112,45 @@ export class TransactionController {
   }
 
   @Get('all-by-user')
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: 'Returns All Transactions By an Authenticated User. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions by the Authenticated User on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findAllByUser(
-    @UserDecorator() user: User,
+    @UserDecorator('id') id: string,
     @Query() query: PaginateQuery,
   ) {
-    const { id } = user;
     return await this.transactionService.findByUser(id, query);
   }
 
   @Get('by-user/:searchDate')
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: 'Returns All Transactions By an Authenticated User on a given date. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions by the Authenticated User on the specified date returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByUserAndDate(
     @Param() params: TransactionDateDto,
     @Query() query: PaginateQuery,
-    @UserDecorator() user: User,
+    @UserDecorator('id') id: string,
   ) {
-    const { id } = user;
     return await this.transactionService.findByUserAndDate(
       id,
       params.searchDate,
@@ -84,14 +159,24 @@ export class TransactionController {
   }
 
   @Get('by-user-and-date-range')
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: 'Returns All Transactions By an Authenticated User within a given date range. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions by the Authenticated User within the given date range returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByUserAndDateRange(
     @Body() dateRangeDto: TransactionDateRangeDto,
     @Query() query: PaginateQuery,
-    @UserDecorator() user: User,
+    @UserDecorator('id') id: string,
   ) {
-    const { id } = user;
     return await this.transactionService.findByUserAndDateRange(
       id,
       dateRangeDto,
@@ -100,8 +185,22 @@ export class TransactionController {
   }
 
   @Get('by-account/:accountId')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns All Transactions done on a given Account by the Account ID, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions for the specified Account ID on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByAccount(
     @Param() params: AccountIdDto,
     @Query() query: PaginateQuery,
@@ -111,8 +210,22 @@ export class TransactionController {
   }
 
   @Get('by-account/:accountId/:searchDate')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns All Transactions done on a given Account by the Account ID on a given date, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions for the specified Account ID on the given search date returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByAccountAndDate(
     @Param() params: AccountIdAndDateDto,
     @Query() query: PaginateQuery,
@@ -126,8 +239,22 @@ export class TransactionController {
   }
 
   @Get('by-account-and-date-range/:accountId')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns All Transactions done on a given Account by the Account ID and by a given date range, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions for the specified Account ID on the given search date range returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findByAccountAndDateRange(
     @Body() dateRangeDto: TransactionDateRangeDto,
     @Param() params: AccountIdAndDateDto,
@@ -142,16 +269,38 @@ export class TransactionController {
   }
 
   @Get(':id')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns a Transaction by ID, only Users with Admin Privileges can make a successful request to this endpoint'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Transaction with the specified ID on the server returned'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Parameter is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Savings Group with the specified ID does not exist on the server'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
   async findOne(@Param() params: TransactionIdDto) {
     const { transactionId } = params;
     return await this.transactionService.findOne(transactionId);
   }
 
   @Patch(':id')
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    description: 'Updates a Transaction, NOT YET COMPLETE'
+  })
   async update(
     @Param() params: TransactionIdDto,
     @Body() updateTransactionDto: UpdateTransactionDto,
