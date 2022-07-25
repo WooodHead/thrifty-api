@@ -148,7 +148,7 @@ export class AccountService {
       });
 
       if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
-      
+
       // Credit the Respective Account
       account.accountBalance = +account.accountBalance + transactionAmount;
       account.bookBalance = +account.bookBalance + transactionAmount;
@@ -190,7 +190,7 @@ export class AccountService {
 
       if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
       if (account.accountBalance < transactionAmount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
-      
+
       // Debit the Respective Account
       account.accountBalance = +account.accountBalance - transactionAmount;
       account.bookBalance = +account.bookBalance - transactionAmount;
@@ -297,7 +297,8 @@ export class AccountService {
       const newTransaction = new Transaction();
 
       newTransaction.transactionDate = new Date()
-      newTransaction.description = `Funds transfer of ${amountToTransfer} from ${fromAccount} - ${account.accountName} to ${toExternalAccount.bankName} - ${toExternalAccount.accountNumber} - ${toExternalAccount.accountName}`;
+      newTransaction.description = `Funds transfer of ${amountToTransfer} from ${fromAccount} - ${account.accountName} 
+      to ${toExternalAccount.bankName} - ${toExternalAccount.accountNumber} - ${toExternalAccount.accountName}`;
       newTransaction.transactionAmount = amountToTransfer;
       newTransaction.transactionMode = TransactionMode.DEBIT;
       newTransaction.transactionType = TransactionType.INSTANTTRANSFER;
