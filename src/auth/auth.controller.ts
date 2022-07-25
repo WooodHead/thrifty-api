@@ -1,5 +1,17 @@
 import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
-import { ApiTags, ApiBasicAuth, ApiBearerAuth, ApiCookieAuth, ApiConsumes, ApiProduces, ApiBody } from '@nestjs/swagger';
+import {
+    ApiBasicAuth,
+    ApiBearerAuth,
+    ApiBody,
+    ApiConsumes,
+    ApiCookieAuth,
+    ApiInternalServerErrorResponse,
+    ApiNotFoundResponse,
+    ApiOkResponse,
+    ApiOperation,
+    ApiTags,
+    ApiUnauthorizedResponse
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
@@ -11,7 +23,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 
 
 @ApiTags('Auth')
-@Controller('/v1/auth')
+@Controller('auth')
 export class AuthController {
 
     constructor(private readonly authService: AuthService) { }
@@ -19,8 +31,19 @@ export class AuthController {
     @Post('login')
     @ApiBasicAuth()
     @ApiBody({ type: LoginUserDto })
-    @ApiConsumes('application/x-www-form-urlencoded')
-    @ApiProduces('application/json')
+    @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
+    @ApiOperation({
+        description: 'Logs in a User with valid email/password combinations'
+    })
+    @ApiOkResponse({
+        description: 'Successful Login'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Login Attempt failed due to invalid email/password combination'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Server Error occured while processing the request'
+    })
     @HttpCode(200)
     @UseGuards(LocalAuthGuard)
     async login(@UserDecorator() user: User, @Res({ passthrough: true }) res: Response) {
@@ -35,7 +58,18 @@ export class AuthController {
 
     @Post('logout')
     @ApiBearerAuth()
-    @ApiProduces('application/json')
+    @ApiOperation({
+        description: 'Logs out a user and clears refresh token cookies'
+    })
+    @ApiOkResponse({
+        description: 'Logout successful'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Access Token supplied with the request has expired'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Server Error occured while processing the request'
+    })
     @UseGuards(JwtAuthGuard)
     @HttpCode(200)
     async logout(@UserDecorator() user: User, @Res({ passthrough: true }) res: Response) {
@@ -46,7 +80,21 @@ export class AuthController {
 
     @Post('refresh-token')
     @ApiCookieAuth()
-    @ApiProduces('application/json')
+    @ApiOperation({
+        description: 'Gets a new Token with a valid refresh token'
+    })
+    @ApiOkResponse({
+        description: 'Token Refresh successful'
+    })
+    @ApiNotFoundResponse({
+        description: 'Cookie with Refresh token not included in the request'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Refresh Token supplied with the request has expired'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Server Error occured while processing the request'
+    })
     @HttpCode(200)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         const { jit } = req.signedCookies;

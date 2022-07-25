@@ -5,7 +5,7 @@ import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
-import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe, VersioningType } from '@nestjs/common';
 import { SwaggerCustomOptions } from './global';
 import { ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
@@ -70,6 +70,11 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api-docs', app, document, customOptions);
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: '1'
+  });
 
   await app.listen(configService.get('PORT') ?? 3000);
   console.log(`Application is running on: ${await app.getUrl()}`);

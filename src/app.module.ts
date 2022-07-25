@@ -1,5 +1,5 @@
 import { CacheModule, Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DefaultAdminModule, AdminUserEntity } from 'nestjs-admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -20,6 +20,7 @@ import { Transaction } from './transaction/entities/transaction.entity';
 import { SavingsGroup } from './savings-group/entities/savings-group.entity';
 import { UserToSavingsGroup } from './common/entities/user-to-savingsgroup.entity';
 import { HttpCacheInterceptor } from './common/interceptors/http-cache-interceptor';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import configuration from './config/configuration';
 
 @Module({
@@ -71,6 +72,11 @@ import configuration from './config/configuration';
       inject: [ConfigService]
     }),
 
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
+
     AuthModule,
     DefaultAdminModule,
     UserModule,
@@ -85,6 +91,10 @@ import configuration from './config/configuration';
       provide: APP_INTERCEPTOR,
       useClass: HttpCacheInterceptor,   // Custom CacheInterceptor used here
     },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ],
 })
 export class AppModule {

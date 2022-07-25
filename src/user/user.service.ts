@@ -8,6 +8,7 @@ import { ResetPasswordDto } from './dto/common-user.dto';
 import { EmailService } from '../services/email/email.service';
 import { SendMailOptions } from '../services/email/interfaces/email.interface';
 import { getVerificationEmailTemplate } from '../services/email/templates/verificationCode';
+import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 
 @Injectable()
 export class UserService {
@@ -16,6 +17,23 @@ export class UserService {
         @InjectRepository(User) private readonly usersRepository: Repository<User>,
         private readonly emailService: EmailService
     ) { }
+
+    async findAll(query: PaginateQuery): Promise<Paginated<User>> {
+        try {
+
+            return await paginate(query, this.usersRepository, {
+                sortableColumns: ['createdAt'],
+                defaultSortBy: [['createdAt', 'DESC']],
+            });
+
+        } catch (error) {
+            console.error(error);
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
 
     async findOneByEmail(email: string): Promise<User> {
         try {
