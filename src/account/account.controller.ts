@@ -170,7 +170,7 @@ export class AccountController {
   async findByAccountName(@Param() params: AccountNameDto) {
     const { accountName } = params
     return await this.accountService.findByAccountName(accountName);
-  }
+  };
 
   @Get('get-bill-payment-products')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
@@ -194,7 +194,7 @@ export class AccountController {
   })
   async getAllBillerCategories() {
     return await this.billPaymentService.getBillCategories();
-  }
+  };
 
   @Get('get-bill-payment-products/:billType')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
@@ -221,7 +221,7 @@ export class AccountController {
   })
   async getFlutterwaveBiller(@Param() params: BillCategoryDto) {
     return await this.billPaymentService.getBillCategoryByType(params.billType);
-  }
+  };
 
   @Get('get-account-by-id/:id')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
@@ -249,7 +249,7 @@ export class AccountController {
   async findOne(@Param() params: AccountIdDto) {
     const { accountId } = params
     return await this.accountService.findOne(accountId);
-  }
+  };
 
   @Post('open-new-account')
   @UseGuards(JwtAuthGuard)
@@ -270,7 +270,7 @@ export class AccountController {
   })
   async openAccount(@Body() createAccountDto: CreateAccountDto, @UserDecorator() user: User) {
     return await this.accountService.create(createAccountDto);
-  }
+  };
 
   @Post('deposit-funds')
   @HttpCode(200)
@@ -294,8 +294,8 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async depositFunds(@Body() transactionInfo: DepositOrWithdrawMoneyDto, @UserDecorator() user: User) {
-    return await this.accountService.depositFunds(transactionInfo, user)
-  }
+    return await this.accountService.depositFunds(transactionInfo, user);
+  };
 
   @Post('withdraw-funds')
   @HttpCode(200)
@@ -319,8 +319,8 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async withdrawFunds(@Body() transactionInfo: DepositOrWithdrawMoneyDto, @UserDecorator() user: User) {
-    return await this.accountService.withdrawFunds(transactionInfo, user)
-  }
+    return await this.accountService.withdrawFunds(transactionInfo, user);
+  };
 
   @Post('internal-transfer')
   @HttpCode(200)
