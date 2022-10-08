@@ -1,25 +1,30 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsObject, IsOptional, IsString, IsUUID, Length, Min, MinLength, ValidateNested } from 'class-validator';
+import {
+    IsInt,
+    IsNotEmpty,
+    IsObject,
+    IsString,
+    IsUUID,
+    Length,
+    Max,
+    Min,
+    MinLength,
+    ValidateNested
+} from 'class-validator';
 import { ExternalAccountDto } from '../../transaction/dto/create-transaction.dto';
 
-export class CheckAccountBalanceDto {
-    @ApiProperty()
-    @IsString()
-    @Length(10)
-    accountNumber: string
-};
+export class AccountNumberDto {
+    @IsNotEmpty()
+    @IsInt()
+    @Min(1000000000)
+    @Max(9999999999)
+    readonly accountNumber: number;
+}
 
 export class AccountIdDto {
     @IsUUID(4)
     readonly accountId: string;
-}
-
-export class AccountNumberDto {
-    @Length(10, 10, {
-        message: 'Account Number must be 10 characters long',
-    })
-    readonly accountNumber: string;
 }
 
 export class AccountNameDto {
@@ -29,11 +34,7 @@ export class AccountNameDto {
     readonly accountName: string;
 }
 
-export class DepositOrWithdrawMoneyDto {
-    @ApiProperty()
-    @IsString()
-    @Length(10)
-    accountNumber: string;
+export class DepositOrWithdrawMoneyDto extends AccountNumberDto {
 
     @ApiProperty()
     @IsInt()
@@ -48,9 +49,11 @@ export class DepositOrWithdrawMoneyDto {
 
 export class TransferFundsToInternalDto {
     @ApiProperty()
-    @IsString()
-    @Length(10, 10, { message: 'Invalid Account Number, fromAccount must be 10 characters long' })
-    fromAccount: string;
+    @IsNotEmpty()
+    @IsInt()
+    @Min(1000000000)
+    @Max(9999999999)
+    fromAccount: number;
 
     @ApiProperty()
     @IsInt()
@@ -58,9 +61,11 @@ export class TransferFundsToInternalDto {
     amountToTransfer: number;
 
     @ApiProperty()
-    @IsString()
-    @Length(10, 10, { message: 'Invalid Account Number, toInternalAccount must be 10 characters long' })
-    toInternalAccount: string;
+    @IsNotEmpty()
+    @IsInt()
+    @Min(1000000000)
+    @Max(9999999999)
+    toInternalAccount: number;
 
     @ApiProperty()
     @IsString()
@@ -70,9 +75,11 @@ export class TransferFundsToInternalDto {
 
 export class TransferFundsToExternalDto {
     @ApiProperty()
-    @IsString()
-    @Length(10)
-    fromAccount: string;
+    @IsNotEmpty()
+    @IsInt()
+    @Min(1000000000)
+    @Max(9999999999)
+    fromAccount: number;
 
     @ApiProperty()
     @IsInt()

@@ -1,4 +1,4 @@
-import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, Max, Min } from 'class-validator';
 import { BillCategoryTypes, Recurrence } from '../interfaces/bill-payment.interface';
 
 export class BillCategoryDto {
@@ -7,6 +7,13 @@ export class BillCategoryDto {
 }
 
 export class PayBillsDto {
+
+    @IsNotEmpty()
+    @IsInt()
+    @Min(1000000000)
+    @Max(9999999999)
+    readonly accountNumber: number;
+
     @IsString()
     @IsNotEmpty()
     country: string;

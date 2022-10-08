@@ -21,9 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli",
     "migration:create": "yarn typeorm migration:create",
-    "migration:generate": "yarn typeorm migration:generate -d path/to/datasource",
-    "migration:run": "yarn typeorm migration:run",
-    "migration:revert": "yarn typeorm migration:revert"
+    "migration:generate": "yarn typeorm migration:generate -d ./src/data-source.ts",
+    "migration:run": "yarn typeorm migration:run -d ./src/data-source.ts",
+    "migration:revert": "yarn typeorm migration:revert -d ./src/data-source.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^0.1.0",
@@ -57,12 +57,12 @@
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
-    "pg": "^8.7.3",
+    "pg": "^8.8.0",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.5.6",
     "swagger-ui-express": "^4.5.0",
-    "typeorm": "^0.3.7"
+    "typeorm": "^0.3.10"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",

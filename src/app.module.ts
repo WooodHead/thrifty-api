@@ -39,10 +39,17 @@ import configuration from './config/configuration';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-        entities: [Account, SavingsGroup, Transaction, User, UserToSavingsGroup, AdminUserEntity],
+        entities: [
+          Account,
+          SavingsGroup,
+          Transaction,
+          User,
+          UserToSavingsGroup,
+          AdminUserEntity
+        ],
         migrations: ['dist/migrations/*.js'],
         migrationsTableName: 'migrations_history',
-        synchronize: true,    // Auto-Sync currently enabled here because of -d /path-to-datasource option issue with typeorm:generate in package.json scripts for typeorm version ^0.3.x
+        synchronize: false,
         ssl: {
           rejectUnauthorized: false
         }

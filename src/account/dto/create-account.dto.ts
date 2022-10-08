@@ -9,11 +9,6 @@ export class CreateAccountDto {
     accountName: string;
 
     @ApiProperty()
-    @IsInt()
-    @Min(1, { message: 'Opening Balance must be greater than zero' })
-    openingBalance: number;
-
-    @ApiProperty()
     @IsUUID(4, { each: true })
     @Length(36, 36, { each: true })
     @ArrayNotEmpty()

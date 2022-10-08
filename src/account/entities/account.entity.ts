@@ -32,6 +32,9 @@ export class Account extends AbstractEntity {
     @JoinTable()
     accountHolders: User[]
 
+    @OneToMany(() => Transaction, (transactions) => transactions.toInternalAccount)
+    creditTransactions: Transaction[];
+
     @OneToMany(() => Transaction, (transactions) => transactions.fromAccount)
-    transactions: Transaction[];
+    debitTransactions: Transaction[];
 }

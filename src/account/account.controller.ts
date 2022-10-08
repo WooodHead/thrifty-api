@@ -111,8 +111,8 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  async checkAccountBalance(@Param() params: AccountNumberDto, @UserDecorator('id') id: string) {
-    const { accountNumber } = params
+  async checkAccountBalance(@Body() accountNumberDto: AccountNumberDto, @UserDecorator('id') id: string) {
+    const { accountNumber } = accountNumberDto
     return await this.accountService.checkAccountBalance(+accountNumber, id);
   };
 
@@ -139,9 +139,9 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  async findByAccountNumber(@Param() params: AccountNumberDto) {
-    const { accountNumber } = params
-    return await this.accountService.findByAccountNumber(+accountNumber);
+  async findByAccountNumber(@Body() accountNumberDto: AccountNumberDto) {
+    const { accountNumber } = accountNumberDto;
+    return await this.accountService.findByAccountNumber(accountNumber);
   };
 
   @Get('get-by-account-name/:accountName')
@@ -396,9 +396,8 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  async payBills(@Body() payBillDto: PayBillsDto, @Param() params: AccountNumberDto, @UserDecorator() user: User) {
-    const { accountNumber } = params
-    return await this.accountService.billPayment(payBillDto, user, +accountNumber)
+  async payBills(@Body() payBillDto: PayBillsDto, @UserDecorator() user: User) {
+    return await this.accountService.billPayment(payBillDto, user)
   }
 
   @Patch(':id')

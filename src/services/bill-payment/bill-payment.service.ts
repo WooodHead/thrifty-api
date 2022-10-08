@@ -109,8 +109,10 @@ export class BillPaymentService {
         }
     }
 
-    public async payBills(createBill: PayBillsDto): Promise<any> {
+    public async payBills(createBillDto: PayBillsDto): Promise<any> {
         try {
+
+            const { accountNumber, ...providerOptions } = createBillDto
 
             const flwReqOptions: AxiosRequestConfig = {
                 method: 'post',
@@ -120,7 +122,7 @@ export class BillPaymentService {
                         'FLUTTERWAVE_SECRET_KEY',
                     )}`,
                 },
-                data: { ...createBill },
+                data: { ...providerOptions },
             };
 
             return await lastValueFrom(
