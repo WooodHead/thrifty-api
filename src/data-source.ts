@@ -1,23 +1,21 @@
 import { DataSource } from 'typeorm';
+import { config } from 'dotenv';
 import { AdminUserEntity } from 'nestjs-admin';
 import { User } from './user/entities/user.entity';
 import { Account } from './account/entities/account.entity';
 import { Transaction } from './transaction/entities/transaction.entity';
 import { SavingsGroup } from './savings-group/entities/savings-group.entity';
 import { UserToSavingsGroup } from './common/entities/user-to-savingsgroup.entity';
-import { ConfigService } from '@nestjs/config';
-import configuration from './config/configuration';
 
-
-const configService = new ConfigService(configuration);
+config()
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
-    host: configService.get<string>('DB_HOST'),
-    port: configService.get<number>('DB_PORT'),
-    username: configService.get<string>('DB_USERNAME'),
-    password: configService.get<string>('DB_PASSWORD'),
-    database: configService.get<string>('DB_DATABASE'),
+    host: process.env.TYPEORM_HOST,
+    port: +process.env.TYPEORM_PORT,
+    username: process.env.TYPEORM_USERNAME,
+    password: process.env.TYPEORM_PASSWORD,
+    database: process.env.TYPEORM_DATABASE,
     entities: [
         Account,
         SavingsGroup,
@@ -27,6 +25,7 @@ export const AppDataSource = new DataSource({
         AdminUserEntity
     ],
     migrations: ['dist/migrations/*.js'],
+    migrationsTableName: 'migrations_history',
     synchronize: false,
     logging: false,
     ssl: {
