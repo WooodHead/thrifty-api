@@ -4,7 +4,12 @@ import { Between, Repository } from 'typeorm';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
 import { Transaction } from './entities/transaction.entity';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
-import { TransactionDateRangeDto } from './dto/common-transaction.dto';
+import {
+  TransactionDateDto,
+  TransactionDateRangeDto,
+  TransactionAccountDateDto,
+  TransactionAccountDateRangeDto
+} from './dto/common-transaction.dto';
 
 @Injectable()
 export class TransactionService {
@@ -65,7 +70,10 @@ export class TransactionService {
     }
   }
 
-  async findByDateRange(dateRangeDto: TransactionDateRangeDto, query: PaginateQuery): Promise<Paginated<Transaction>> {
+  async findByDateRange(
+    dateRangeDto: TransactionDateRangeDto,
+    query: PaginateQuery)
+    : Promise<Paginated<Transaction>> {
     try {
 
       const { fromDate, toDate } = dateRangeDto;
@@ -147,7 +155,7 @@ export class TransactionService {
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
         defaultSortBy: [['createdAt', 'DESC']],
-        where: { fromAccount: { id: accountId } },
+        where: { account: { id: accountId } },
       });
 
     } catch (error) {
@@ -160,18 +168,19 @@ export class TransactionService {
   }
 
   async findByAccountAndDate(
-    accountId: string,
-    searchDate: Date,
+    transactionDateDto: TransactionAccountDateDto,
     query: PaginateQuery
   ): Promise<Paginated<Transaction>> {
     try {
+
+      const { accountID, searchDate } = transactionDateDto
 
       const endDate = new Date(searchDate).getTime() + 86400000;
 
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
         defaultSortBy: [['createdAt', 'DESC']],
-        where: { fromAccount: { id: accountId }, createdAt: Between(new Date(searchDate), new Date(endDate)) },
+        where: { account: { id: accountID }, createdAt: Between(new Date(searchDate), new Date(endDate)) },
       });
 
     } catch (error) {
@@ -184,19 +193,18 @@ export class TransactionService {
   }
 
   async findByAccountAndDateRange(
-    accountId: string,
-    DateRangeDto: TransactionDateRangeDto,
+    dateRangeDto: TransactionAccountDateRangeDto,
     query: PaginateQuery
   ): Promise<Paginated<Transaction>> {
     try {
 
-      const { fromDate, toDate } = DateRangeDto;
+      const { accountID, fromDate, toDate } = dateRangeDto;
 
       return await paginate(query, this.transactionRepository, {
         sortableColumns: ['createdAt'],
         defaultSortBy: [['createdAt', 'DESC']],
         where: {
-          fromAccount: { id: accountId },
+          account: { id: accountID },
           createdAt: Between(new Date(fromDate), new Date(toDate)),
         },
       });

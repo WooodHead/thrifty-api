@@ -20,6 +20,7 @@ import { User } from 'src/user/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
 import { LoginUserDto } from './dto/login-user.dto';
+import { SuccessResponse } from '../utils/successResponse';
 
 
 @ApiTags('Auth')
@@ -47,13 +48,13 @@ export class AuthController {
     @HttpCode(200)
     @UseGuards(LocalAuthGuard)
     async login(@UserDecorator() user: User, @Res({ passthrough: true }) res: Response) {
+
         const { token, refreshToken } = await this.authService.login(user);
+
         res.cookie('jit', refreshToken, cookieOptions);
-        return {
-            statusCode: 200,
-            message: 'Login Successful',
-            authToken: token,
-        };
+
+        return new SuccessResponse(200, 'Login Successful', token);
+
     }
 
     @Post('logout')
@@ -73,9 +74,12 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @HttpCode(200)
     async logout(@UserDecorator() user: User, @Res({ passthrough: true }) res: Response) {
+
         await this.authService.logout(user);
+
         res.clearCookie('jit', cookieOptions);
-        return { message: 'Logout Successful' };
+
+        return new SuccessResponse(200, 'Logout Successful');
     }
 
     @Post('refresh-token')
@@ -97,13 +101,14 @@ export class AuthController {
     })
     @HttpCode(200)
     async refreshToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+
         const { jit } = req.signedCookies;
+
         const { token, refreshToken } = await this.authService.validateRefreshToken(jit);
+
         res.cookie('jit', refreshToken, cookieOptions);
-        return {
-            statusCode: 200,
-            message: 'Token Refresh Successful',
-            authToken: token,
-        };
+
+        return new SuccessResponse(200, 'Token Refresh Successful', token);
+
     }
 }

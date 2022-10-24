@@ -10,8 +10,6 @@ import {
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
-  ApiConflictResponse,
-  ApiCreatedResponse,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
   ApiNotFoundResponse,
@@ -25,16 +23,17 @@ import { TransactionService } from './transaction.service';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserDecorator } from '../user/decorators/user.decorator';
-import { User } from '../user/entities/user.entity';
 import {
   AccountIdDto,
-  AccountIdAndDateDto,
   TransactionDateDto,
   TransactionDateRangeDto,
+  TransactionAccountDateDto,
+  TransactionAccountDateRangeDto,
   TransactionIdDto,
 } from './dto/common-transaction.dto';
 import { RoleGuard } from '../auth/guards/roles.guard';
 import { Role } from '../user/interfaces/user.interface';
+import { SuccessResponse } from '../utils/successResponse';
 
 @Controller('transactions')
 @ApiTags('Transactions')
@@ -42,7 +41,7 @@ import { Role } from '../user/interfaces/user.interface';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
-  @Get('all')
+  @Get('')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
@@ -60,10 +59,14 @@ export class TransactionController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findAll(@Query() query: PaginateQuery) {
-    return await this.transactionService.findAll(query);
+    
+    const responseData = await this.transactionService.findAll(query);
+
+    return new SuccessResponse(200, 'All Transactions', responseData)
+
   }
 
-  @Get('by-date-range')
+  @Get('date-range')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions within a given date range on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
@@ -84,10 +87,14 @@ export class TransactionController {
     @Body() dateRangeDto: TransactionDateRangeDto,
     @Query() query: PaginateQuery,
   ) {
-    return await this.transactionService.findByDateRange(dateRangeDto, query);
+
+    const responseData = await this.transactionService.findByDateRange(dateRangeDto, query);
+
+    return new SuccessResponse(200, 'All Transactions By Date Range', responseData);
+
   }
 
-  @Get('by-date/:searchDate')
+  @Get('date/:searchDate')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions done on a given date on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
@@ -108,10 +115,14 @@ export class TransactionController {
     @Param() params: TransactionDateDto,
     @Query() query: PaginateQuery,
   ) {
-    return await this.transactionService.findByDate(params.searchDate, query);
+
+    const responseData = await this.transactionService.findByDate(params.searchDate, query);
+
+    return new SuccessResponse(200, 'Transactions By Date', responseData)
+
   }
 
-  @Get('all-by-user')
+  @Get('user')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Returns All Transactions By an Authenticated User. Request can be paginated'
@@ -129,10 +140,14 @@ export class TransactionController {
     @UserDecorator('id') id: string,
     @Query() query: PaginateQuery,
   ) {
-    return await this.transactionService.findByUser(id, query);
+
+    const responseData = await this.transactionService.findByUser(id, query);
+
+    return new SuccessResponse(200, 'All Transactions By User', responseData)
+
   }
 
-  @Get('by-user/:searchDate')
+  @Get('user/:searchDate')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Returns All Transactions By an Authenticated User on a given date. Request can be paginated'
@@ -151,14 +166,18 @@ export class TransactionController {
     @Query() query: PaginateQuery,
     @UserDecorator('id') id: string,
   ) {
-    return await this.transactionService.findByUserAndDate(
+
+    const responseData = await this.transactionService.findByUserAndDate(
       id,
       params.searchDate,
       query,
     );
+
+    return new SuccessResponse(200, 'All Transactions By User and Date', responseData);
+
   }
 
-  @Get('by-user-and-date-range')
+  @Get('user/date-range')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Returns All Transactions By an Authenticated User within a given date range. Request can be paginated'
@@ -177,14 +196,18 @@ export class TransactionController {
     @Query() query: PaginateQuery,
     @UserDecorator('id') id: string,
   ) {
-    return await this.transactionService.findByUserAndDateRange(
+    
+    const responseData = await this.transactionService.findByUserAndDateRange(
       id,
       dateRangeDto,
       query,
     );
+
+    return new SuccessResponse(200, 'Transactions By User and Date Range', responseData)
+
   }
 
-  @Get('by-account/:accountId')
+  @Get('account')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions done on a given Account by the Account ID, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
@@ -202,14 +225,19 @@ export class TransactionController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findByAccount(
-    @Param() params: AccountIdDto,
+    @Body() accountIDDto: AccountIdDto,
     @Query() query: PaginateQuery,
   ) {
-    const { accountId } = params;
-    return await this.transactionService.findByAccount(accountId, query);
+
+    const { accountId } = accountIDDto;
+
+    const responseData = await this.transactionService.findByAccount(accountId, query);
+
+    return new SuccessResponse(200, 'Transactions Retrieved By Account', responseData);
+
   }
 
-  @Get('by-account/:accountId/:searchDate')
+  @Get('account/date')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions done on a given Account by the Account ID on a given date, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
@@ -227,18 +255,19 @@ export class TransactionController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findByAccountAndDate(
-    @Param() params: AccountIdAndDateDto,
+    @Body() transactionDateDto: TransactionAccountDateDto,
     @Query() query: PaginateQuery,
   ) {
-    const { accountId, searchDate } = params;
-    return await this.transactionService.findByAccountAndDate(
-      accountId,
-      searchDate,
+
+    const responseData = await this.transactionService.findByAccountAndDate(
+      transactionDateDto,
       query,
     );
+
+    return new SuccessResponse(200, 'Transaction Retreived By Account and Date', responseData)
   }
 
-  @Get('by-account-and-date-range/:accountId')
+  @Get('account/date-range')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions done on a given Account by the Account ID and by a given date range, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
@@ -256,16 +285,16 @@ export class TransactionController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findByAccountAndDateRange(
-    @Body() dateRangeDto: TransactionDateRangeDto,
-    @Param() params: AccountIdAndDateDto,
+    @Body() dateRangeDto: TransactionAccountDateRangeDto,
     @Query() query: PaginateQuery,
   ) {
-    const { accountId } = params;
-    return await this.transactionService.findByAccountAndDateRange(
-      accountId,
+
+    const responseData = await this.transactionService.findByAccountAndDateRange(
       dateRangeDto,
       query,
     );
+
+    return new SuccessResponse(200, 'Transactions Retrieved By Date Range', responseData)
   }
 
   @Get(':id')
@@ -292,8 +321,13 @@ export class TransactionController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findOne(@Param() params: TransactionIdDto) {
+
     const { transactionId } = params;
-    return await this.transactionService.findOne(transactionId);
+
+    const responseData = await this.transactionService.findOne(transactionId);
+
+    return new SuccessResponse(200, 'Transaction Retrieved By ID', responseData);
+
   }
 
   @Patch(':id')
@@ -306,9 +340,13 @@ export class TransactionController {
     @Body() updateTransactionDto: UpdateTransactionDto,
   ) {
     const { transactionId } = params;
-    return await this.transactionService.update(
+
+    const responseData = await this.transactionService.update(
       transactionId,
       updateTransactionDto,
     );
+
+    return new SuccessResponse(200, 'Transaction Updated', responseData)
+
   }
 }

@@ -33,6 +33,8 @@ import { RoleGuard } from 'src/auth/guards/roles.guard';
 import { ResetPasswordDto, ValidEmailDto } from './dto/common-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
 import { PaginateQuery } from 'nestjs-paginate';
+import { SuccessResponse } from '../utils/successResponse';
+
 
 @ApiTags('User')
 @Controller('users')
@@ -53,11 +55,15 @@ export class UserController {
     @ApiInternalServerErrorResponse({
         description: 'An Internal Error Occurred while processing the request'
     })
+    @HttpCode(201)
     async create(@Body() createUserDto: CreateUserDto) {
-        return await this.usersService.create(createUserDto);
+
+        const responseData = await this.usersService.create(createUserDto);
+
+        return new SuccessResponse(201, 'User Created', responseData)
     };
 
-    @Get('all')
+    @Get('')
     @ApiBearerAuth()
     @ApiOperation({
         description: 'Returns all Users on the Server, Only User(s) with with User Admin Privileges can make a successful request to this endpoint'
@@ -76,7 +82,11 @@ export class UserController {
     })
     @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
     async findAll(@Query() query: PaginateQuery) {
-        return await this.usersService.findAll(query)
+
+        const responseData = await this.usersService.findAll(query);
+
+        return new SuccessResponse(200, 'All Users', responseData);
+
     };
 
     @Get('userinfo')
@@ -94,11 +104,15 @@ export class UserController {
         description: 'An Internal Error Occurred while processing the request'
     })
     @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
-    findOne(@UserDecorator('id') id: string) {
-        return this.usersService.findOneById(id);
+    async findOne(@UserDecorator('id') id: string) {
+
+        const responseData = await this.usersService.findOneById(id);
+
+        return new SuccessResponse(200, 'User Retrieved By ID', responseData)
+
     }
 
-    @Get('get-verification-code/:email')
+    @Post('verification-code')
     @ApiOperation({
         description: 'Get Verification for password reset, email supplied with the reuqest must be registered against a user'
     })
@@ -111,9 +125,14 @@ export class UserController {
     @ApiInternalServerErrorResponse({
         description: 'An Internal Error Occurred while processing the request'
     })
-    async getVerificationCode(@Param() params: ValidEmailDto) {
-        const { email } = params;
-        return this.usersService.getVerificationCode(email);
+    async getVerificationCode(@Body() emailDto: ValidEmailDto) {
+        
+        const { email } = emailDto;
+        
+        await this.usersService.getVerificationCode(email);
+
+        return new SuccessResponse(200, 'Verification Code Sent')
+
     }
 
     @Put('reset-password')
@@ -161,8 +180,12 @@ export class UserController {
     @ApiOperation({
         description: 'Deletes a user account, THIS ENDPOINT IS NOT FULLY COMPLETE'
     })
-    remove(@Param('id') id: string) {
-        return this.usersService.delete(id);
+    async remove(@Param('id') id: string) {
+        
+        await this.usersService.delete(id);
+
+        return new SuccessResponse(200, 'User Deleted')
+        
     }
 
 }

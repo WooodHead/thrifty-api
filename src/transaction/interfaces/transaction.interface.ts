@@ -1,3 +1,6 @@
+import { User } from '../../user/entities/user.entity';
+import { Account } from '../../account/entities/account.entity';
+
 export enum TransactionType {
   INSTANTTRANSFER = 'INSTANT TRANSFER',
   BILLPAYMENT = 'BILL PAYMENT',
@@ -34,4 +37,16 @@ export interface IExternalAccount {
   bankCode: string;
   branchCode: string;
   branchName: string;
+}
+
+export interface IGenExtTxParams {
+  debitAccount: Account,
+  toExternalAccount: IExternalAccount,
+  transactionAmount: number,
+  user: User
+}
+
+export interface IGenIntTxParams extends Omit<IGenExtTxParams, 'toExternalAccount'>  {
+  creditAccount: Account,
+  isDebit: boolean,
 }

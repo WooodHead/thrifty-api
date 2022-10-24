@@ -41,6 +41,7 @@ import { RoleGuard } from '../auth/guards/roles.guard';
 import { Role } from '../user/interfaces/user.interface';
 import { BillPaymentService } from '../services/bill-payment/bill-payment.service';
 import { BillCategoryDto, PayBillsDto } from '../services/bill-payment/dto/bill-payment.dto';
+import { SuccessResponse } from '../utils/successResponse';
 
 @Controller('accounts')
 @ApiTags('Account')
@@ -51,7 +52,7 @@ export class AccountController {
     private readonly billPaymentService: BillPaymentService,
   ) { }
 
-  @Get('all')
+  @Get('')
   @ApiOperation({
     description: 'Returns All Accounts on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
   })
@@ -69,11 +70,15 @@ export class AccountController {
   })
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   async findAll(@Query() query: PaginateQuery) {
-    return await this.accountService.findAll(query);
+
+    const responseData = await this.accountService.findAll(query);
+
+    return new SuccessResponse(200, 'All Accounts', responseData);
+
   }
 
   // Global Caching disabled for this route, Caching is done at Service-level
-  @Get('get-account-by-user')
+  @Get('user')
   @ApiOperation({
     description: 'Returns All Accounts for a specified user'
   })
@@ -88,10 +93,14 @@ export class AccountController {
   })
   @UseGuards(JwtAuthGuard)
   async findAccountByUser(@Query() query: PaginateQuery, @UserDecorator('id') id: string) {
-    return await this.accountService.findAccountByUser(id, query);
+
+    const responseData = await this.accountService.findAccountByUser(id, query);
+
+    return new SuccessResponse(200, 'All Accounts By User', responseData);
+
   }
 
-  @Get('check-account-balance/:accountNumber')
+  @Get('account-balance')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Returns the account balance of the specified account. Only authenticated users can call this endpoint and users can only query accounts belonging to them.'
@@ -111,12 +120,17 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  async checkAccountBalance(@Body() accountNumberDto: AccountNumberDto, @UserDecorator('id') id: string) {
+  async checkAccountBalance(@Query() accountNumberDto: AccountNumberDto, @UserDecorator('id') id: string) {
+
     const { accountNumber } = accountNumberDto
-    return await this.accountService.checkAccountBalance(+accountNumber, id);
+
+    const responseData = await this.accountService.checkAccountBalance(+accountNumber, id);
+
+    return new SuccessResponse(200, 'Account Retrieved By Account Number', responseData);
+
   };
 
-  @Get('get-by-account-number/:accountNumber')
+  @Get('account-number')
   @ApiOperation({
     description: 'Searches for an account by account number. Admin privileges required to call this endpoint'
   })
@@ -124,7 +138,7 @@ export class AccountController {
     description: 'SUCCESS: Account with the specified account number on the server returned'
   })
   @ApiBadRequestResponse({
-    description: 'Request Parameter is empty or contains unacceptable values'
+    description: 'Request Query is empty or contains unacceptable values'
   })
   @ApiUnauthorizedResponse({
     description: 'Access Token supplied with the request has expired or is invalid'
@@ -133,18 +147,23 @@ export class AccountController {
     description: 'User does not have the Required Permission for the requested operation'
   })
   @ApiNotFoundResponse({
-    description: 'Project with the specified name does not exist on the server'
+    description: 'Account with the specified accountNumber does not exist on the server'
   })
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  async findByAccountNumber(@Body() accountNumberDto: AccountNumberDto) {
+  async findByAccountNumber(@Query() accountNumberDto: AccountNumberDto) {
+
     const { accountNumber } = accountNumberDto;
-    return await this.accountService.findByAccountNumber(accountNumber);
+
+    const responseData = await this.accountService.findByAccountNumber(+accountNumber);
+
+    return new SuccessResponse(200, 'Account Retrieved By Account Number', responseData);
+
   };
 
-  @Get('get-by-account-name/:accountName')
+  @Get('account-name')
   @ApiOperation({
     description: 'Searches for an account by account name. Admin privileges required to call this endpoint'
   })
@@ -167,12 +186,17 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  async findByAccountName(@Param() params: AccountNameDto) {
-    const { accountName } = params
-    return await this.accountService.findByAccountName(accountName);
+  async findByAccountName(@Query() accountNameDto: AccountNameDto) {
+
+    const { accountName } = accountNameDto
+
+    const responseData = await this.accountService.findByAccountName(accountName);
+
+    return new SuccessResponse(200, 'Account Retrieved By Account Name', responseData)
+
   };
 
-  @Get('get-bill-payment-products')
+  @Get('bill-payment-products')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns all Product types for making bill payments. Admin privileges required to call this endpoint'
@@ -193,10 +217,14 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async getAllBillerCategories() {
-    return await this.billPaymentService.getBillCategories();
+
+    const responseData = await this.billPaymentService.getBillCategories();
+
+    return new SuccessResponse(200, 'Bill Payment Categories', responseData);
+
   };
 
-  @Get('get-bill-payment-products/:billType')
+  @Get('bill-payment-products/:billType')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns all Product types for making bill payments filtered by type category. Admin privileges required to call this endpoint'
@@ -220,10 +248,14 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async getFlutterwaveBiller(@Param() params: BillCategoryDto) {
-    return await this.billPaymentService.getBillCategoryByType(params.billType);
+
+    const responseData = await this.billPaymentService.getBillCategoryByType(params.billType);
+
+    return new SuccessResponse(200, 'Bill Payment Category By Type', responseData);
+
   };
 
-  @Get('get-account-by-id/:id')
+  @Get(':id')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Searches for an Account by account ID. Admin privileges required to call this endpoint'
@@ -247,11 +279,15 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findOne(@Param() params: AccountIdDto) {
-    const { accountId } = params
-    return await this.accountService.findOne(accountId);
+
+    const { accountId } = params;
+
+    const responseData = await this.accountService.findOne(accountId);
+
+    return new SuccessResponse(200, 'Account Retrieved By ID', responseData)
   };
 
-  @Post('open-new-account')
+  @Post('open-account')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Opens a new Account, Account number is auto-generated internally with checks being made against existing account numbers'
@@ -268,8 +304,13 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  async openAccount(@Body() createAccountDto: CreateAccountDto, @UserDecorator() user: User) {
-    return await this.accountService.create(createAccountDto);
+  @HttpCode(201)
+  async openAccount(@Body() createAccountDto: CreateAccountDto) {
+
+    const responseData = await this.accountService.create(createAccountDto);
+
+    return new SuccessResponse(201, 'Account Created', responseData)
+
   };
 
   @Post('deposit-funds')
@@ -294,7 +335,11 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async depositFunds(@Body() transactionInfo: DepositOrWithdrawMoneyDto, @UserDecorator() user: User) {
-    return await this.accountService.depositFunds(transactionInfo, user);
+
+    const responseData = await this.accountService.depositFunds(transactionInfo, user);
+
+    return new SuccessResponse(200, 'Funds Deposit Successful', responseData);
+
   };
 
   @Post('withdraw-funds')
@@ -319,7 +364,11 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async withdrawFunds(@Body() transactionInfo: DepositOrWithdrawMoneyDto, @UserDecorator() user: User) {
-    return await this.accountService.withdrawFunds(transactionInfo, user);
+
+    const responseData = await this.accountService.withdrawFunds(transactionInfo, user);
+
+    return new SuccessResponse(200, 'Funds Withdrawal Successful', responseData)
+
   };
 
   @Post('internal-transfer')
@@ -345,7 +394,11 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async internalTransfer(@Body() transferInternalDto: TransferFundsToInternalDto, @UserDecorator() user: User) {
-    return await this.accountService.internalFundsTransfer(transferInternalDto, user)
+
+    const responseData = await this.accountService.internalFundsTransfer(transferInternalDto, user);
+
+    return new SuccessResponse(200, 'Funds Transfer Successful', responseData);
+
   }
 
   @Post('external-transfer')
@@ -371,7 +424,11 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async externalTransfer(@Body() transferExternalDto: TransferFundsToExternalDto, @UserDecorator() user: User) {
-    return await this.accountService.externalFundsTransfer(transferExternalDto, user)
+
+    const responseData = await this.accountService.externalFundsTransfer(transferExternalDto, user);
+
+    return new SuccessResponse(200, 'Transfer Successful', responseData);
+
   }
 
   @Post('bill-payment/:accountNumber')
@@ -397,22 +454,64 @@ export class AccountController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async payBills(@Body() payBillDto: PayBillsDto, @UserDecorator() user: User) {
-    return await this.accountService.billPayment(payBillDto, user)
+
+    const responseData = await this.accountService.billPayment(payBillDto, user);
+
+    return new SuccessResponse(200, 'Bill Payment Status', responseData)
   }
 
-  @Patch(':id')
+  @Patch(':accountNumber')
   @ApiOperation({
-    description: 'Updates other details of an account. NOT YET COMPLETE'
+    description: 'Updates other details of an account'
   })
-  update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
-    return this.accountService.update(+id, updateAccountDto);
+  @ApiOkResponse({
+    description: 'Account Update Successful'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiNotFoundResponse({
+    description: 'Account with the supplied accountNumber not found'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  update(
+    @Param() accountNumberDto: AccountNumberDto,
+    @Body() updateAccountDto: UpdateAccountDto,
+    @UserDecorator('id') id: string
+  ) {
+
+    const { accountNumber } = accountNumberDto;
+
+    const responseData = this.accountService.update(accountNumber, updateAccountDto, id);
+
+    return new SuccessResponse(200, 'Account Updated', responseData);
+
   }
 
   @Delete(':accountNumber')
   @ApiOperation({
-    description: 'Deletes an account. NOT YET COMPLETE'
+    description: 'Deletes an account'
   })
-  async remove(@Param('accountNumber') accountNumber: string) {
-    return await this.accountService.remove(+accountNumber);
+  @ApiOkResponse({
+    description: 'Account Deleted Successfully'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiNotFoundResponse({
+    description: 'Account with the supplied accountNumber not found'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async remove(@Param() accountNumberDto: AccountNumberDto, @UserDecorator('id') id: string) {
+
+    const { accountNumber } = accountNumberDto;
+
+    const responseData = await this.accountService.remove(accountNumber, id);
+
+    return new SuccessResponse(200, 'Account Deleted', responseData)
   }
 }

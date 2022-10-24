@@ -2,7 +2,14 @@ import { Column, Entity, ManyToOne, BeforeInsert } from 'typeorm';
 import { AbstractEntity } from '../../common/entities/abstract.entity';
 import { User } from '../../user/entities/user.entity';
 import { Account } from '../../account/entities/account.entity';
-import { TransactionMode, TransactionType, TransactionStatus, IExternalAccount } from '../interfaces/transaction.interface';
+import {
+  TransactionMode,
+  TransactionType,
+  TransactionStatus,
+  IExternalAccount,
+  IGenExtTxParams,
+  IGenIntTxParams
+} from '../interfaces/transaction.interface';
 import { PayBillsDto } from '../../services/bill-payment/dto/bill-payment.dto';
 
 @Entity()
@@ -32,11 +39,8 @@ export class Transaction extends AbstractEntity {
   @ManyToOne(() => User, (user) => user.transactions)
   customer: User;
 
-  @ManyToOne(() => Account, (account) => account.debitTransactions, { nullable: true })
-  fromAccount: Account;
-
-  @ManyToOne(() => Account, (account) => account.creditTransactions, { nullable: true })
-  toInternalAccount: Account;
+  @ManyToOne(() => Account, (account) => account.transactions, { nullable: true })
+  account: Account;
 
   @Column('decimal', { precision: 15, scale: 2, default: 0 })
   accountBalance: number;
@@ -68,7 +72,7 @@ export class Transaction extends AbstractEntity {
     this.transactionMode = TransactionMode.CREDIT;
     this.transactionType = TransactionType.FUNDS_DEPOSIT;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;
-    this.toInternalAccount = account;
+    this.account = account;
     this.customer = user
     this.accountBalance = account.accountBalance;
 
@@ -83,12 +87,12 @@ export class Transaction extends AbstractEntity {
   ) {
 
     this.transactionDate = new Date()
-    this.description = `cash Withdrawal of ${transactionAmount} made by ${transactionParty}`;
+    this.description = `Cash Withdrawal of ${transactionAmount} made by ${transactionParty}`;
     this.transactionAmount = transactionAmount;
     this.transactionMode = TransactionMode.DEBIT;
     this.transactionType = TransactionType.FUNDS_WITHDRAWAL;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;
-    this.fromAccount = account;
+    this.account = account;
     this.customer = user
     this.accountBalance = account.accountBalance;
 
@@ -96,12 +100,13 @@ export class Transaction extends AbstractEntity {
 
   }
 
-  public async generateInternalTransferTransaction(
-    debitAccount: Account,
-    creditAccount: Account,
-    transactionAmount: number,
-    isDebit: boolean,
-    user: User
+  public async generateInternalTransferTransaction({
+    debitAccount,
+    creditAccount,
+    transactionAmount,
+    isDebit,
+    user
+  }: IGenIntTxParams
   ) {
 
     const {
@@ -116,8 +121,11 @@ export class Transaction extends AbstractEntity {
       accountNumber: creditAccountNumber
     } = creditAccount;
 
+    const creditDescription = `CREDIT: Funds Transfer of ${transactionAmount} from ${debitAccountName} - ${debitAccountNumber}`
+    const debitDescription = `DEBIT: Funds Transfer of ${transactionAmount} to ${creditAccountName} - ${creditAccountNumber}`
+
     this.transactionDate = new Date();
-    this.description = `Funds transfer of ${transactionAmount} from ${debitAccountNumber} - ${debitAccountName} to ${creditAccountNumber} - ${creditAccountName}`;
+    this.description = isDebit ? debitDescription : creditDescription;
     this.transactionAmount = transactionAmount;
     this.transactionMode = isDebit ? TransactionMode.DEBIT : TransactionMode.CREDIT;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;
@@ -126,22 +134,22 @@ export class Transaction extends AbstractEntity {
     this.transactionMode = TransactionMode.DEBIT;
     this.transactionType = TransactionType.INSTANTTRANSFER;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;
-    this.fromAccount = debitAccount;
-    this.toInternalAccount = creditAccount;
+    this.account = isDebit ? debitAccount : creditAccount;
     this.customer = user;
 
     await this.save()
 
   };
 
-  public async generateExternalTransferTransaction(
-    debitAccount: Account,
-    transactionAmount: number,
-    toExternalAccount: IExternalAccount,
-    user: User
+  public async generateExternalTransferTransaction({
+    debitAccount,
+    transactionAmount,
+    toExternalAccount,
+    user
+  }: IGenExtTxParams
   ) {
 
-    const { accountName, accountNumber, accountBalance } = debitAccount
+    const { accountName, accountNumber, accountBalance } = debitAccount;
 
     this.transactionDate = new Date()
     this.description = `Funds transfer of ${transactionAmount} from ${accountNumber} - ${accountName} 
@@ -150,7 +158,7 @@ export class Transaction extends AbstractEntity {
     this.transactionMode = TransactionMode.DEBIT;
     this.transactionType = TransactionType.INSTANTTRANSFER;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;
-    this.fromAccount = debitAccount;
+    this.account = debitAccount;
     this.toExternalAccount = toExternalAccount;
     this.customer = user;
     this.accountBalance = accountBalance;
@@ -176,7 +184,7 @@ export class Transaction extends AbstractEntity {
     this.transactionMode = TransactionMode.DEBIT;
     this.transactionType = TransactionType.BILLPAYMENT;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;
-    this.fromAccount = debitAccount;
+    this.account = debitAccount;
     this.billPaymentDetails = paymentDetails
     this.customer = user
     this.accountBalance = accountBalance;

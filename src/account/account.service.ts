@@ -1,15 +1,27 @@
-import { BadRequestException, CACHE_MANAGER, ConflictException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  CACHE_MANAGER,
+  ConflictException,
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Any } from 'typeorm';
 import { Cache } from 'cache-manager';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
-import { DepositOrWithdrawMoneyDto, TransferFundsToExternalDto, TransferFundsToInternalDto } from './dto/common-account.dto';
+import {
+  DepositOrWithdrawMoneyDto,
+  TransferFundsToExternalDto,
+  TransferFundsToInternalDto
+} from './dto/common-account.dto';
 import { User } from '../user/entities/user.entity';
 import { Account } from './entities/account.entity';
-import { TransactionStatus, TransactionType, TransactionMode } from '../transaction/interfaces/transaction.interface'
-import { generateAccountNumber } from '../utils/generateAccountNumber';
 import { Transaction } from '../transaction/entities/transaction.entity';
 import { BillPaymentService } from '../services/bill-payment/bill-payment.service';
 import { PayBillsDto } from 'src/services/bill-payment/dto/bill-payment.dto';
@@ -243,8 +255,8 @@ export class AccountService {
       const newDebitTransaction = new Transaction();
       const newCreditTransaction = new Transaction();
 
-      await newDebitTransaction.generateInternalTransferTransaction(debitAccount, creditAccount, amountToTransfer, true, user)
-      await newCreditTransaction.generateInternalTransferTransaction(debitAccount, creditAccount, amountToTransfer, false, user)
+      await newDebitTransaction.generateInternalTransferTransaction({ debitAccount, creditAccount, transactionAmount: amountToTransfer, isDebit: true, user })
+      await newCreditTransaction.generateInternalTransferTransaction({ debitAccount, creditAccount, transactionAmount: amountToTransfer, isDebit: false, user })
 
       return newDebitTransaction;
 
@@ -281,7 +293,7 @@ export class AccountService {
       // Prepare and create transaction record
       const newDebitTransaction = new Transaction();
 
-      await newDebitTransaction.generateExternalTransferTransaction(debitAccount, amountToTransfer, toExternalAccount, user)
+      await newDebitTransaction.generateExternalTransferTransaction({ debitAccount, transactionAmount: amountToTransfer, toExternalAccount, user })
 
       return newDebitTransaction;
 
@@ -333,7 +345,7 @@ export class AccountService {
 
   async create(createAccountDto: CreateAccountDto) {
     try {
-      
+
       const { accountName, accountHolders } = createAccountDto;
 
       const allAccountNumbers = (await this.accountRepository.find({
@@ -345,7 +357,7 @@ export class AccountService {
       const newAccount = new Account();
 
       newAccount.accountName = accountName;
-      newAccount.accountNumber = generateAccountNumber(allAccountNumbers);
+      newAccount.accountNumber = newAccount.genAcctNum(allAccountNumbers);
       newAccount.accountHolders = await this.userRepository.findBy({ id: Any(accountHolders) });
       newAccount.accountType = createAccountDto.accountType;
 
@@ -360,14 +372,52 @@ export class AccountService {
     }
   }
 
-  update(id: number, updateAccountDto: UpdateAccountDto) {
-    return `This action updates a #${id} account`;
+  async update(accountNumber: number, updateAccountDto: UpdateAccountDto, userID: string) {
+    try {
+
+      const accountToUpdate = await this.accountRepository.findOneBy({
+        accountNumber,
+        accountHolders: { id: userID }
+      });
+
+      if (accountToUpdate) {
+
+        const updatedAccount = Object.assign(accountToUpdate, updateAccountDto);
+
+        await this.accountRepository.save(updatedAccount);
+
+        return accountToUpdate;
+
+      } else {
+
+        throw new NotFoundException(`Account with accountNumber: ${accountNumber} not found`)
+      }
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  async remove(accountNumber: number) {
+  async remove(accountNumber: number, userID: string) {
     try {
-      const accountToDelete = await this.accountRepository.findOneBy({ accountNumber })
-      return await this.accountRepository.remove(accountToDelete)
+
+      const accountToDelete = await this.accountRepository.findOneBy({
+        accountNumber,
+        accountHolders: { id: userID }
+      });
+
+      if (accountToDelete) {
+
+        return await this.accountRepository.remove(accountToDelete);
+
+      } else {
+        throw new NotFoundException(`Account with accountNumber ${accountNumber} not found`)
+      }
+
     } catch (error) {
       console.error(error);
       throw new HttpException(

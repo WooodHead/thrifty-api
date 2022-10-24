@@ -32,9 +32,29 @@ export class Account extends AbstractEntity {
     @JoinTable()
     accountHolders: User[]
 
-    @OneToMany(() => Transaction, (transactions) => transactions.toInternalAccount)
-    creditTransactions: Transaction[];
+    @OneToMany(() => Transaction, (transactions) => transactions.account)
+    transactions: Transaction[];
+    
+    public genAcctNum(accountNumbers: number[]) {
 
-    @OneToMany(() => Transaction, (transactions) => transactions.fromAccount)
-    debitTransactions: Transaction[];
+        let accountNumber: number = 1000000000 + Math.floor(Math.random() * 1000000000);
+
+        if (accountNumbers.indexOf(accountNumber) !== -1) {
+            accountNumber = this.genAcctNum(accountNumbers)
+        }
+
+        return accountNumber;
+
+    };
+
+    public generateAccountNumber (accountNumbers: number[]) {
+        
+        let accountNumber: number = 1000000000 + Math.floor(Math.random() * 1000000000);
+    
+        while (accountNumbers.indexOf(accountNumber) !== -1) {
+            accountNumber = 1000000000 + Math.floor(Math.random() * 1000000000);
+        }
+    
+        return accountNumber;
+    };
 }
