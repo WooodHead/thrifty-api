@@ -26,10 +26,9 @@ import { PaginateQuery } from 'nestjs-paginate';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
-import { UserDecorator } from '../user/decorators/user.decorator';
+import { UserDecorator } from '@user/decorators/user.decorator';
 import { User } from '@user/entities/user.entity';
 import {
-  AccountIdDto,
   AccountNameDto,
   AccountNumberDto,
   DepositOrWithdrawMoneyDto,
@@ -37,46 +36,18 @@ import {
   TransferFundsToExternalDto
 } from './dto/common-account.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
-import { RoleGuard } from '@auth/guards/roles.guard';
-import { Role } from '@user/interfaces/user.interface';
-import { BillPaymentService } from '@services/bill-payment/bill-payment.service';
-import { BillCategoryDto, PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+import { PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
 import { SuccessResponse } from '@utils/successResponse';
 
 
 @Controller('accounts')
+@UseGuards(JwtAuthGuard)
 @ApiTags('Account')
 @ApiBearerAuth()
 export class AccountController {
   constructor(
     private readonly accountService: AccountService,
-    private readonly billPaymentService: BillPaymentService,
   ) { }
-
-  @Get()
-  @ApiOperation({
-    description: 'Returns All Accounts on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Accounts on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  async findAll(@Query() query: PaginateQuery) {
-
-    const responseData = await this.accountService.findAll(query);
-
-    return new SuccessResponse(200, 'All Accounts', responseData);
-
-  }
 
   // Global Caching disabled for this route, Caching is done at Service-level
   @Get('user')
@@ -102,7 +73,6 @@ export class AccountController {
   }
 
   @Get('balance')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Returns the account balance of the specified account. Only authenticated users can call this endpoint and users can only query accounts belonging to them.'
   })
@@ -131,9 +101,9 @@ export class AccountController {
 
   };
 
-  @Get('account-number')
+  @Get('number')
   @ApiOperation({
-    description: 'Searches for an account by account number. Admin privileges required to call this endpoint'
+    description: 'Searches for an account by account number belonging to the authenticated user'
   })
   @ApiOkResponse({
     description: 'SUCCESS: Account with the specified account number on the server returned'
@@ -153,20 +123,19 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  async findByAccountNumber(@Query() accountNumberDto: AccountNumberDto) {
+  async findByAccountNumber(@Query() accountNumberDto: AccountNumberDto, @UserDecorator('id') id: string) {
 
     const { accountNumber } = accountNumberDto;
 
-    const responseData = await this.accountService.findByAccountNumber(+accountNumber);
+    const responseData = await this.accountService.findByAccountNumber(+accountNumber, id);
 
     return new SuccessResponse(200, 'Account Retrieved By Account Number', responseData);
 
   };
 
-  @Get('account-name')
+  @Get('name')
   @ApiOperation({
-    description: 'Searches for an account by account name. Admin privileges required to call this endpoint'
+    description: 'Searches for an account by account name, belonging to the authenticated user'
   })
   @ApiOkResponse({
     description: 'SUCCESS: Account with the specified account name on the server returned'
@@ -186,112 +155,19 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  async findByAccountName(@Query() accountNameDto: AccountNameDto) {
+  async findByAccountName(@Query() accountNameDto: AccountNameDto, @UserDecorator('id') id: string) {
 
     const { accountName } = accountNameDto
 
-    const responseData = await this.accountService.findByAccountName(accountName);
+    const responseData = await this.accountService.findByAccountName(accountName, id);
 
     return new SuccessResponse(200, 'Account Retrieved By Account Name', responseData)
 
   };
 
-  @Get('bill-payment-products')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns all Product types for making bill payments. Admin privileges required to call this endpoint'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All available bill payment product types returned'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Project with the specified name does not exist on the server'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async getAllBillerCategories() {
-
-    const responseData = await this.billPaymentService.getBillCategories();
-
-    return new SuccessResponse(200, 'Bill Payment Categories', responseData);
-
-  };
-
-  @Get('bill-payment-products/:billType')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns all Product types for making bill payments filtered by type category. Admin privileges required to call this endpoint'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All available bill payment product types matching the filter criteria returned'
-  })
-  @ApiBadRequestResponse({
-    description: 'Request Parameter is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Project with the specified name does not exist on the server'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async getFlutterwaveBiller(@Param() params: BillCategoryDto) {
-
-    const responseData = await this.billPaymentService.getBillCategoryByType(params.billType);
-
-    return new SuccessResponse(200, 'Bill Payment Category By Type', responseData);
-
-  };
-
-  @Get(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Searches for an Account by account ID. Admin privileges required to call this endpoint'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Account with the specified account ID on the server returned'
-  })
-  @ApiBadRequestResponse({
-    description: 'Request Parameter is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Project with the specified name does not exist on the server'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findOne(@Param() params: AccountIdDto) {
-
-    const { accountId } = params;
-
-    const responseData = await this.accountService.findOne(accountId);
-
-    return new SuccessResponse(200, 'Account Retrieved By ID', responseData)
-  };
-
   @Post()
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Opens a new Account, Account number is auto-generated internally with checks being made against existing account numbers'
+    description: 'Opens a new Account, Account number is auto-generated internally'
   })
   @ApiCreatedResponse({
     description: 'SUCCESS: New Account opened with the details in the request body'
@@ -316,9 +192,10 @@ export class AccountController {
 
   @Post('deposit')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Deposits funds into the account specified in the request body. Operation credits the specified account, checks made against the supplied account number and name combination'
+    description: `Deposits funds into the account specified in the request body. 
+    Operation credits the specified account, 
+    checks made against the supplied account number and name combination`
   })
   @ApiOkResponse({
     description: 'SUCCESS: Funds deposited into the specified account'
@@ -345,9 +222,10 @@ export class AccountController {
 
   @Post('withdraw')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Withdraws funds from the account specified in the request body. Operation debits the specified account, checks made against the supplied account number and name combination'
+    description: `Withdraws funds from the account specified in the request body. 
+    Operation debits the specified account, 
+    checks made against the supplied account number and name combination`
   })
   @ApiOkResponse({
     description: 'SUCCESS: Account debited and Funds withdrawn from the specified account'
@@ -374,7 +252,6 @@ export class AccountController {
 
   @Post('internal-transfer')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `Transfers funds between internal accounts. Operation debits one account and credits the other account, 
     checks made against the supplied account number and name combination and for sufficient balance to cary out the transaction`
@@ -403,7 +280,6 @@ export class AccountController {
   }
 
   @Post('external-transfer')
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `Transfers funds from internal accounts to an external account. Operation debits the internal account, 
     the external account is an object containing random values describing the details of the external account, 
@@ -432,9 +308,8 @@ export class AccountController {
 
   }
 
-  @Post('pay-bills/:accountNumber')
+  @Post('pay-bills')
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `Makes a bill payment transaction. Operation debits an account, 
     checks made against the supplied account number and name combination and for sufficient balance on the debit account`

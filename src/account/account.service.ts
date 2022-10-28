@@ -39,43 +39,15 @@ export class AccountService {
     private dataSource: DataSource
   ) { }
 
-  async findAll(query: PaginateQuery): Promise<Paginated<Account>> {
-    try {
-      return await paginate(query, this.accountRepository, {
-        sortableColumns: ['createdAt'],
-        defaultSortBy: [['createdAt', 'DESC']],
-      });
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findOne(id: string): Promise<Account> {
+  async findByAccountNumber(accountNumber: number, userID: string) {
     try {
 
-      const account = await this.accountRepository.findOneBy({ id });
-
-      if (account) return account
-
-      throw new NotFoundException(`Account with ID: ${id} not found`);
-
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findByAccountNumber(accountNumber: number) {
-    try {
-
-      const account = await this.accountRepository.findOneBy({ accountNumber });
+      const account = await this.accountRepository
+        .createQueryBuilder('account')
+        .leftJoin('account.accountHolders', 'user')
+        .where('account.accountNumber =: accountNumber', { accountNumber })
+        .andWhere('user.id =:userID', { userID })
+        .getOne()
 
       if (account) return account;
 
@@ -90,14 +62,19 @@ export class AccountService {
     }
   }
 
-  async findByAccountName(name: string) {
+  async findByAccountName(accountName: string, userID: string) {
     try {
 
-      const account = await this.accountRepository.findOneBy({ accountName: name });
+      const account = await this.accountRepository
+        .createQueryBuilder('account')
+        .leftJoin('account.accountHolders', 'user')
+        .where('account.accountName =: accountName', { accountName })
+        .andWhere('user.id =:userID', { userID })
+        .getOne()
 
       if (account) return account;
 
-      throw new NotFoundException(`Account with name: ${name} not found`);
+      throw new NotFoundException(`Account with name: ${accountName} not found`);
 
     } catch (error) {
       console.error(error);

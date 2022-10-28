@@ -4,12 +4,12 @@ import { DefaultAdminModule, DefaultAdminSite } from 'nestjs-admin';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
 import { User } from './entities/user.entity';
-import { EmailService } from '../services/email/email.service';
+
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), DefaultAdminModule],
   exports: [UserService, TypeOrmModule],
-  providers: [UserService, EmailService],
+  providers: [UserService],
   controllers: [UserController]
 })
 export class UserModule {

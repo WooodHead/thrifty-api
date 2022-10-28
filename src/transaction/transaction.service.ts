@@ -18,38 +18,6 @@ export class TransactionService {
     private readonly transactionRepository: Repository<Transaction>,
   ) { }
 
-  async findAll(query: PaginateQuery): Promise<Paginated<Transaction>> {
-    try {
-      return await paginate(query, this.transactionRepository, {
-        sortableColumns: ['createdAt'],
-        defaultSortBy: [['createdAt', 'DESC']],
-      });
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async findOne(id: string): Promise<Transaction> {
-    try {
-      const transaction = await this.transactionRepository.findOneBy({ id });
-      if (!transaction)
-        throw new NotFoundException(
-          `Transaction with ID: ${id} not found on this server`,
-        );
-      return transaction;
-    } catch (error) {
-      console.error(error);
-      throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   async findByDate(searchDate: Date, query: PaginateQuery): Promise<Paginated<Transaction>> {
     try {
 

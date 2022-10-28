@@ -41,31 +41,6 @@ import { SuccessResponse } from '../utils/successResponse';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
-  @Get('')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns All Transactions on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Transactions on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findAll(@Query() query: PaginateQuery) {
-    
-    const responseData = await this.transactionService.findAll(query);
-
-    return new SuccessResponse(200, 'All Transactions', responseData)
-
-  }
-
   @Get('date-range')
   @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
@@ -295,39 +270,6 @@ export class TransactionController {
     );
 
     return new SuccessResponse(200, 'Transactions Retrieved By Date Range', responseData)
-  }
-
-  @Get(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns a Transaction by ID, only Users with Admin Privileges can make a successful request to this endpoint'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Transaction with the specified ID on the server returned'
-  })
-  @ApiBadRequestResponse({
-    description: 'Required Request Parameter is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Savings Group with the specified ID does not exist on the server'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findOne(@Param() params: TransactionIdDto) {
-
-    const { transactionId } = params;
-
-    const responseData = await this.transactionService.findOne(transactionId);
-
-    return new SuccessResponse(200, 'Transaction Retrieved By ID', responseData);
-
   }
 
   @Patch(':id')

@@ -1,10 +1,11 @@
-import { Controller, HttpCode, Post, UseGuards, Req, Res } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UseGuards, Req, Res, Put } from '@nestjs/common';
 import {
     ApiBasicAuth,
     ApiBearerAuth,
     ApiBody,
     ApiConsumes,
     ApiCookieAuth,
+    ApiForbiddenResponse,
     ApiInternalServerErrorResponse,
     ApiNotFoundResponse,
     ApiOkResponse,
@@ -21,6 +22,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
 import { LoginUserDto } from './dto/login-user.dto';
 import { SuccessResponse } from '@utils/successResponse';
+import { ValidEmailDto, ResetPasswordDto } from '@user/dto/common-user.dto';
+import { UpdateUserPasswordDto } from '@user/dto/update-user.dto';
 
 
 @ApiTags('Auth')
@@ -110,5 +113,68 @@ export class AuthController {
 
         return new SuccessResponse(200, 'Token Refresh Successful', token);
 
+    };
+
+    @Post('get-code')
+    @ApiOperation({
+        description: 'Get Verification for password reset, email supplied with the reuqest must be registered against a user'
+    })
+    @ApiOkResponse({
+        description: 'Verification Code successfully sent to the specified email'
+    })
+    @ApiNotFoundResponse({
+        description: 'A User with the Specified Email does not exist on the server'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Error Occurred while processing the request'
+    })
+    async getVerificationCode(@Body() emailDto: ValidEmailDto) {
+        
+        const { email } = emailDto;
+        
+        await this.authService.getVerificationCode(email);
+
+        return new SuccessResponse(200, 'Verification Code Sent')
+
+    }
+
+    @Put('reset-password')
+    @HttpCode(204)
+    @ApiConsumes('multipart/form-data', 'application/json')
+    @ApiOperation({
+        description: 'Password Reset for Unauthenticated User(s) who forgot their password, a valid verification code must be supplied with this request'
+    })
+    @ApiOkResponse({
+        description: 'Password Reset Successful'
+    })
+    @ApiForbiddenResponse({
+        description: 'Verification Code Supplied is invalid or it has expired'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Error Occurred while processing the request'
+    })
+    async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+        return this.authService.resetPassword(resetPasswordDto);
+    }
+
+    @Put('change-password')
+    @ApiBearerAuth()
+    @ApiConsumes('multipart/form-data', 'application/json')
+    @ApiOperation({
+        description: 'Password change for Authenticated User(s) who know their password'
+    })
+    @ApiOkResponse({
+        description: 'Password Change Successful'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Access Token supplied with the request has expired or is invalid'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Error Occurred while processing the request'
+    })
+    @HttpCode(204)
+    @UseGuards(JwtAuthGuard)
+    async changePassword(@UserDecorator('id') id: string, @Body() changePasswordDto: UpdateUserPasswordDto) {
+        return this.authService.changePassword(id, changePasswordDto)
     }
 }

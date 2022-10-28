@@ -21,6 +21,7 @@ import { SavingsGroup } from './savings-group/entities/savings-group.entity';
 import { UserToSavingsGroup } from './common/entities/user-to-savingsgroup.entity';
 import { HttpCacheInterceptor } from './common/interceptors/http-cache-interceptor';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AdminModule } from './admin/admin.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -89,7 +90,8 @@ import configuration from './config/configuration';
     UserModule,
     SavingsGroupModule,
     AccountModule,
-    TransactionModule
+    TransactionModule,
+    AdminModule
   ],
   controllers: [AppController],
   providers: [
