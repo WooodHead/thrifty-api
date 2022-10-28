@@ -27,7 +27,7 @@ import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { UpdateAccountDto } from './dto/update-account.dto';
 import { UserDecorator } from '../user/decorators/user.decorator';
-import { User } from '../user/entities/user.entity';
+import { User } from '@user/entities/user.entity';
 import {
   AccountIdDto,
   AccountNameDto,
@@ -36,12 +36,13 @@ import {
   TransferFundsToInternalDto,
   TransferFundsToExternalDto
 } from './dto/common-account.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from '../auth/guards/roles.guard';
-import { Role } from '../user/interfaces/user.interface';
-import { BillPaymentService } from '../services/bill-payment/bill-payment.service';
-import { BillCategoryDto, PayBillsDto } from '../services/bill-payment/dto/bill-payment.dto';
-import { SuccessResponse } from '../utils/successResponse';
+import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
+import { RoleGuard } from '@auth/guards/roles.guard';
+import { Role } from '@user/interfaces/user.interface';
+import { BillPaymentService } from '@services/bill-payment/bill-payment.service';
+import { BillCategoryDto, PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+import { SuccessResponse } from '@utils/successResponse';
+
 
 @Controller('accounts')
 @ApiTags('Account')
@@ -52,7 +53,7 @@ export class AccountController {
     private readonly billPaymentService: BillPaymentService,
   ) { }
 
-  @Get('')
+  @Get()
   @ApiOperation({
     description: 'Returns All Accounts on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
   })
@@ -100,7 +101,7 @@ export class AccountController {
 
   }
 
-  @Get('account-balance')
+  @Get('balance')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Returns the account balance of the specified account. Only authenticated users can call this endpoint and users can only query accounts belonging to them.'
@@ -287,7 +288,7 @@ export class AccountController {
     return new SuccessResponse(200, 'Account Retrieved By ID', responseData)
   };
 
-  @Post('open-account')
+  @Post()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: 'Opens a new Account, Account number is auto-generated internally with checks being made against existing account numbers'
@@ -313,7 +314,7 @@ export class AccountController {
 
   };
 
-  @Post('deposit-funds')
+  @Post('deposit')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
@@ -342,7 +343,7 @@ export class AccountController {
 
   };
 
-  @Post('withdraw-funds')
+  @Post('withdraw')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
@@ -431,7 +432,7 @@ export class AccountController {
 
   }
 
-  @Post('bill-payment/:accountNumber')
+  @Post('pay-bills/:accountNumber')
   @HttpCode(200)
   @UseGuards(JwtAuthGuard)
   @ApiOperation({

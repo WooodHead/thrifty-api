@@ -5,7 +5,6 @@ import {
     Get,
     HttpCode,
     Param,
-    Patch,
     Post,
     Put,
     Query,
@@ -29,19 +28,19 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UserDecorator } from './decorators/user.decorator';
 import { Role } from './interfaces/user.interface';
-import { RoleGuard } from 'src/auth/guards/roles.guard';
+import { RoleGuard } from '@auth/guards/roles.guard';
 import { ResetPasswordDto, ValidEmailDto } from './dto/common-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
 import { PaginateQuery } from 'nestjs-paginate';
-import { SuccessResponse } from '../utils/successResponse';
+import { SuccessResponse } from '@utils/successResponse';
 
 
-@ApiTags('User')
 @Controller('users')
+@ApiTags('User')
 export class UserController {
     constructor(private readonly usersService: UserService) { }
 
-    @Post('register')
+    @Post()
     @ApiOperation({
         description: 'Creates a New User Account'
     })
@@ -63,7 +62,7 @@ export class UserController {
         return new SuccessResponse(201, 'User Created', responseData)
     };
 
-    @Get('')
+    @Get()
     @ApiBearerAuth()
     @ApiOperation({
         description: 'Returns all Users on the Server, Only User(s) with with User Admin Privileges can make a successful request to this endpoint'
@@ -112,7 +111,7 @@ export class UserController {
 
     }
 
-    @Post('verification-code')
+    @Post('get-code')
     @ApiOperation({
         description: 'Get Verification for password reset, email supplied with the reuqest must be registered against a user'
     })

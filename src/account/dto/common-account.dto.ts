@@ -12,7 +12,7 @@ import {
     MinLength,
     ValidateNested
 } from 'class-validator';
-import { ExternalAccountDto } from '../../transaction/dto/create-transaction.dto';
+import { ExternalAccountDto } from '@transaction/dto/create-transaction.dto';
 
 export class AccountNumberDto {
     @IsNotEmpty()

@@ -10,8 +10,8 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
-import { UserService } from '../user/user.service';
-import { User } from '../user/entities/user.entity';
+import { UserService } from '@user/user.service';
+import { User } from '@user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +33,7 @@ export class AuthService {
                 return user;
             };
 
-            throw new UnauthorizedException('INVALID CREDENTIALS');
+            throw new UnauthorizedException('Invalid Credentials');
 
         } catch (error) {
             throw new HttpException(

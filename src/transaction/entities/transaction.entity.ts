@@ -1,16 +1,18 @@
 import { Column, Entity, ManyToOne, BeforeInsert } from 'typeorm';
-import { AbstractEntity } from '../../common/entities/abstract.entity';
-import { User } from '../../user/entities/user.entity';
-import { Account } from '../../account/entities/account.entity';
+import { AbstractEntity } from '@common/entities/abstract.entity';
+import { User } from '@user/entities/user.entity';
+import { Account } from '@account/entities/account.entity';
 import {
   TransactionMode,
   TransactionType,
   TransactionStatus,
   IExternalAccount,
   IGenExtTxParams,
-  IGenIntTxParams
+  IGenIntTxParams,
+  IGenBillTxParams
 } from '../interfaces/transaction.interface';
-import { PayBillsDto } from '../../services/bill-payment/dto/bill-payment.dto';
+import { PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+
 
 @Entity()
 export class Transaction extends AbstractEntity {
@@ -167,20 +169,19 @@ export class Transaction extends AbstractEntity {
 
   }
 
-  public async generateBillPaymentTransaction(
-    debitAccount: Account,
-    payBillsDto: PayBillsDto,
-    paymentDetails: any,
-    user: User
-  ) {
+  public async generateBillPaymentTransaction({
+    debitAccount,
+    transactionAmount,
+    paymentDetails,
+    user
+  }: IGenBillTxParams) {
 
     const { accountBalance } = debitAccount;
-    const { amount } = payBillsDto;
     const { firstName, lastName } = user;
 
     this.transactionDate = new Date()
-    this.description = `Bill Payment of amount ${amount} made by ${firstName + ' ' + lastName}`;
-    this.transactionAmount = amount;
+    this.description = `Bill Payment of amount ${transactionAmount} made by ${firstName + ' ' + lastName}`;
+    this.transactionAmount = transactionAmount;
     this.transactionMode = TransactionMode.DEBIT;
     this.transactionType = TransactionType.BILLPAYMENT;
     this.transactionStatus = TransactionStatus.SUCCESSFUL;

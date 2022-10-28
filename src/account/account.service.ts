@@ -10,7 +10,7 @@ import {
   NotFoundException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Any } from 'typeorm';
+import { DataSource, Repository, Any } from 'typeorm';
 import { Cache } from 'cache-manager';
 import { PaginateQuery, paginate, Paginated } from 'nestjs-paginate';
 import { CreateAccountDto } from './dto/create-account.dto';
@@ -20,22 +20,23 @@ import {
   TransferFundsToExternalDto,
   TransferFundsToInternalDto
 } from './dto/common-account.dto';
-import { User } from '../user/entities/user.entity';
+import { User } from '@user/entities/user.entity';
 import { Account } from './entities/account.entity';
-import { Transaction } from '../transaction/entities/transaction.entity';
-import { BillPaymentService } from '../services/bill-payment/bill-payment.service';
-import { PayBillsDto } from 'src/services/bill-payment/dto/bill-payment.dto';
-import { generateTransactionRef } from '../utils/generateTrsnactionRef';
+import { Transaction } from '@transaction/entities/transaction.entity';
+import { BillPaymentService } from '@services/bill-payment/bill-payment.service';
+import { PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+import { generateTransactionRef } from '@utils/generateTrsnactionRef';
+
 
 @Injectable()
 export class AccountService {
 
   constructor(
     @InjectRepository(Account) private readonly accountRepository: Repository<Account>,
-    @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly billPaymentService: BillPaymentService,
+    private dataSource: DataSource
   ) { }
 
   async findAll(query: PaginateQuery): Promise<Paginated<Account>> {
@@ -55,12 +56,13 @@ export class AccountService {
 
   async findOne(id: string): Promise<Account> {
     try {
+
       const account = await this.accountRepository.findOneBy({ id });
-      if (!account)
-        throw new NotFoundException(
-          `Account with ID: ${id} not found on this server`,
-        );
-      return account;
+
+      if (account) return account
+
+      throw new NotFoundException(`Account with ID: ${id} not found`);
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -72,9 +74,13 @@ export class AccountService {
 
   async findByAccountNumber(accountNumber: number) {
     try {
+
       const account = await this.accountRepository.findOneBy({ accountNumber });
+
       if (account) return account;
-      throw new NotFoundException(`Account with accountNumber: ${accountNumber} not found on this server`);
+
+      throw new NotFoundException(`Account with accountNumber: ${accountNumber} not found`);
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -86,9 +92,13 @@ export class AccountService {
 
   async findByAccountName(name: string) {
     try {
+
       const account = await this.accountRepository.findOneBy({ accountName: name });
+
       if (account) return account;
-      throw new NotFoundException(`Account with name: ${name} not found on this server`);
+
+      throw new NotFoundException(`Account with name: ${name} not found`);
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -102,7 +112,7 @@ export class AccountService {
   async findAccountByUser(userId: string, query: PaginateQuery): Promise<Paginated<Account> | any> {
     try {
 
-      const data = await this.cacheManager.get(`accounts-by-user/${userId}`);
+      const data = await this.cacheManager.get(`accounts/user/${userId}`);
 
       if (data) return { fromCache: true, data };
 
@@ -117,7 +127,7 @@ export class AccountService {
         defaultSortBy: [['createdAt', 'DESC']]
       })
 
-      await this.cacheManager.set(`accounts-by-user/${userId}`, accounts, { ttl: 300 })
+      await this.cacheManager.set(`accounts/user/${userId}`, accounts, { ttl: 300 })
 
       return accounts;
 
@@ -132,6 +142,7 @@ export class AccountService {
 
   async checkAccountBalance(accountNumber: number, userId: string) {
     try {
+
       const account = await this.accountRepository.findOneBy({
         accountNumber,
         accountHolders: { id: userId }
@@ -139,7 +150,8 @@ export class AccountService {
 
       if (account) return account.accountBalance;
 
-      throw new ForbiddenException(`Invalid user/account number combination`);
+      throw new ForbiddenException(`Not Allowed To Access Account`);
+
     } catch (error) {
       console.error(error);
       throw new HttpException(
@@ -151,6 +163,7 @@ export class AccountService {
 
   async depositFunds(transactionInfo: DepositOrWithdrawMoneyDto, user: User) {
     try {
+
       const { accountNumber, transactionAmount, transactionParty } = transactionInfo;
 
       // Search for account and add transaction amout to account balance
@@ -194,8 +207,11 @@ export class AccountService {
         accountHolders: { id: user.id }
       });
 
-      if (!account) throw new ForbiddenException(`Invalid User/Account number combination`);
-      if (account.accountBalance < transactionAmount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      if (!account) throw new ForbiddenException(`Not Allowed to Access Account`);
+
+      if (account.accountBalance < transactionAmount) {
+        throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      }
 
       // Debit the Respective Account
       const { accountBalance, bookBalance } = account;
@@ -223,23 +239,32 @@ export class AccountService {
     try {
       const { fromAccount, toInternalAccount, toInternalAccountName, amountToTransfer } = transferInternalDto;
 
-      // Search for account and add transaction amout to account balance
+      // Search for account and add transaction amount to account balance
       const debitAccount = await this.accountRepository.findOneBy({
         accountNumber: fromAccount,
         accountHolders: { id: user.id }
       });
 
-      if (!debitAccount) throw new ForbiddenException(`fromAccount: Invalid User/Account number combination`);
-      if (debitAccount.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      if (!debitAccount) {
+        throw new ForbiddenException(`fromAccount: Invalid User/Account number combination`)
+      };
+
+      if (debitAccount.accountBalance < amountToTransfer) {
+        throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      }
 
       const creditAccount = await this.accountRepository.findOneBy({
         accountNumber: toInternalAccount,
         accountName: toInternalAccountName
       });
 
-      if (!creditAccount) throw new NotFoundException(`creditAccount: Invalid Account number/name combination`);
+      if (!creditAccount) {
+        throw new NotFoundException(`creditAccount: Invalid Account number/name combination`)
+      };
 
-      if (debitAccount.accountNumber === creditAccount.accountNumber) throw new ConflictException('You cannot make transfers between the same account')
+      if (debitAccount.accountNumber === creditAccount.accountNumber) {
+        throw new ConflictException('You cannot make transfers between the same account')
+      }
 
       // Debit and Credit Respective Accounts
       const { accountBalance, bookBalance } = debitAccount
@@ -249,14 +274,30 @@ export class AccountService {
       creditAccount.accountBalance = +creditAccount.accountBalance + amountToTransfer;
       creditAccount.bookBalance = +creditAccount.bookBalance + amountToTransfer;
 
-      await this.accountRepository.save([debitAccount, creditAccount]);
+      await this.dataSource.transaction(async manager => {
+        await manager.save(debitAccount);
+        await manager.save(creditAccount);
+      });
 
       // Generate Credit and Debit Transaction for both Accounts
       const newDebitTransaction = new Transaction();
       const newCreditTransaction = new Transaction();
 
-      await newDebitTransaction.generateInternalTransferTransaction({ debitAccount, creditAccount, transactionAmount: amountToTransfer, isDebit: true, user })
-      await newCreditTransaction.generateInternalTransferTransaction({ debitAccount, creditAccount, transactionAmount: amountToTransfer, isDebit: false, user })
+      await newDebitTransaction.generateInternalTransferTransaction({
+        debitAccount,
+        creditAccount,
+        transactionAmount: amountToTransfer,
+        isDebit: true,
+        user
+      });
+
+      await newCreditTransaction.generateInternalTransferTransaction({
+        debitAccount,
+        creditAccount,
+        transactionAmount: amountToTransfer,
+        isDebit: false,
+        user
+      });
 
       return newDebitTransaction;
 
@@ -281,7 +322,9 @@ export class AccountService {
 
       if (!debitAccount) throw new BadRequestException(`Invalid User/Account number combination`);
 
-      if (debitAccount.accountBalance < amountToTransfer) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      if (debitAccount.accountBalance < amountToTransfer) {
+        throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+      }
 
       // Debit the Respective internal account
       const { accountBalance, bookBalance } = debitAccount
@@ -293,7 +336,12 @@ export class AccountService {
       // Prepare and create transaction record
       const newDebitTransaction = new Transaction();
 
-      await newDebitTransaction.generateExternalTransferTransaction({ debitAccount, transactionAmount: amountToTransfer, toExternalAccount, user })
+      await newDebitTransaction.generateExternalTransferTransaction({
+        debitAccount,
+        transactionAmount: amountToTransfer,
+        toExternalAccount,
+        user
+      })
 
       return newDebitTransaction;
 
@@ -315,9 +363,13 @@ export class AccountService {
       accountHolders: { id: user.id }
     });
 
-    if (!debitAccount) throw new BadRequestException(`Invalid User/Account number combination`);
+    if (!debitAccount) {
+      throw new BadRequestException(`Invalid User/Account number combination`)
+    };
 
-    if (debitAccount.accountBalance < payBillDto.amount) throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+    if (debitAccount.accountBalance < payBillDto.amount) {
+      throw new ForbiddenException(`Unable to process transaction, Insufficient funds`)
+    }
 
     // Initiate Payment Request with Third-Party Bill-Payment Provider
     payBillDto.reference = generateTransactionRef();
@@ -335,7 +387,12 @@ export class AccountService {
       // Prepare and create transaction record
       const newDebitTransaction = new Transaction();
 
-      await newDebitTransaction.generateBillPaymentTransaction(debitAccount, payBillDto, paymentDetails, user)
+      await newDebitTransaction.generateBillPaymentTransaction({
+        debitAccount,
+        transactionAmount: payBillDto.amount,
+        paymentDetails,
+        user
+      });
 
       return newDebitTransaction;
     }
