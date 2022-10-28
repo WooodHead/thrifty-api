@@ -1,16 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, Length, IsEnum, IsUUID, ArrayNotEmpty } from 'class-validator';
+import { IsString, IsEnum, IsUUID, ArrayNotEmpty, MinLength } from 'class-validator';
 import { AccountType } from '../interfaces/account.interface';
 
+
 export class CreateAccountDto {
+    
     @ApiProperty()
+    @MinLength(3)
     @IsString()
-    @Length(3)
     accountName: string;
 
     @ApiProperty()
     @IsUUID(4, { each: true })
-    @Length(36, 36, { each: true })
     @ArrayNotEmpty()
     accountHolders: string[];
 

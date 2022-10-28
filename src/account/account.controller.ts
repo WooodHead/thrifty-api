@@ -74,7 +74,8 @@ export class AccountController {
 
   @Get('balance')
   @ApiOperation({
-    description: 'Returns the account balance of the specified account. Only authenticated users can call this endpoint and users can only query accounts belonging to them.'
+    description: `Returns the account balance of the specified account. 
+    Only authenticated users can call this endpoint and users can only query accounts belonging to them.`
   })
   @ApiOkResponse({
     description: 'SUCCESS: Balance on the specified account returned',
@@ -390,4 +391,5 @@ export class AccountController {
 
     return new SuccessResponse(200, 'Account Deleted', responseData)
   }
+  
 }

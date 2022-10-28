@@ -3,13 +3,13 @@ import {
     NotFoundException,
     HttpException,
     UnauthorizedException,
-    HttpStatus
+    HttpStatus,
+    ConflictException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { PostgresErrorCodes } from '@common/interfaces/postgresErrorCodes';
 
 @Injectable()
@@ -84,9 +84,8 @@ export class UserService {
         } catch (error) {
             console.error(error.message)
             if (error?.code === PostgresErrorCodes.UniqueViolation) {
-                throw new HttpException(
-                    `User with ${createUserDto.email} already exists`,
-                    HttpStatus.BAD_REQUEST,
+                throw new ConflictException(
+                    `User with ${createUserDto.email} already exists`
                 );
             }
             throw new HttpException(
@@ -99,7 +98,11 @@ export class UserService {
     async delete(id: string) {
         try {
 
-            return await this.usersRepository.delete(id);
+            const deleteUser = await this.usersRepository.delete(id);
+
+            if (!deleteUser.affected) {
+                throw new NotFoundException(`User With ID: ${id} not found`);
+            }
 
         } catch (error) {
             console.error(error.message)

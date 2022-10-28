@@ -1,10 +1,12 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { Repository } from 'typeorm';
 import { Account } from '@account/entities/account.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '@user/entities/user.entity';
 import { Transaction } from '@transaction/entities/transaction.entity';
+import { FeatureFlag } from './entities/featureFlag.entity';
+
 
 
 @Injectable()
@@ -13,7 +15,7 @@ export class AdminService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Account) private readonly accountRepository: Repository<Account>,
-    @InjectRepository(Account) private readonly transactionRepository: Repository<Transaction>
+    @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>
   ) { }
 
   async findAllUsers(query: PaginateQuery): Promise<Paginated<User>> {
@@ -111,4 +113,5 @@ export class AdminService {
       );
     }
   }
+
 }

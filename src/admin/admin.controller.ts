@@ -1,9 +1,14 @@
 import {
   Controller,
+  Delete,
   Get,
+  Post,
   Param,
+  Patch,
   Query,
-  UseGuards
+  UseGuards,
+  Body,
+  HttpCode
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -14,7 +19,8 @@ import {
   ApiInternalServerErrorResponse,
   ApiTags,
   ApiBadRequestResponse,
-  ApiNotFoundResponse
+  ApiNotFoundResponse,
+  ApiCreatedResponse
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
 import { RoleGuard } from '@auth/guards/roles.guard';
@@ -25,6 +31,9 @@ import { AdminService } from './admin.service';
 import { BillPaymentService } from '@services/bill-payment/bill-payment.service';
 import { BillCategoryDto } from '@services/bill-payment/dto/bill-payment.dto';
 import { EntityIdDto } from './dto/admin.dto';
+import { FeatureFlagService } from './feature-flag/feature-flag.service';
+import { CreateFeatureFlagDto } from './dto/featureFlag.dto';
+import { FeatureFlagGuard } from './feature-flag/feature-flag.guard';
 
 
 @Controller('admin')
@@ -34,6 +43,7 @@ import { EntityIdDto } from './dto/admin.dto';
 export class AdminController {
   constructor(
     private readonly adminService: AdminService,
+    private readonly featureFlagService: FeatureFlagService,
     private readonly billPaymentService: BillPaymentService,
   ) { }
 
@@ -144,6 +154,7 @@ export class AdminController {
   };
 
   @Get('bill-payment/products')
+  @UseGuards(FeatureFlagGuard('bill-payment-product-type'))   // Temporary: This is to test feature flags
   @ApiOperation({
     description: 'Returns all Product types for making bill payments filtered by type category. Admin privileges required to call this endpoint'
   })
@@ -231,6 +242,94 @@ export class AdminController {
 
     return new SuccessResponse(200, 'Transaction Retrieved By ID', responseData);
 
+  }
+
+  @Post('feature-flags')
+  @ApiOperation({
+    description: 'Creates a new Flag'
+  })
+  @ApiCreatedResponse({
+    description: 'SUCCESS: Feature Flag Created'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Body is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  @HttpCode(201)
+  async createFeatureFlag(@Body() createFeatureFlagDto: CreateFeatureFlagDto) {
+
+    const responseData = await this.featureFlagService.createFeatureFlag(createFeatureFlagDto);
+
+    return new SuccessResponse(201, 'Feature Flag Created', responseData)
+
+  };
+
+  @Patch('feature-flags/:id')
+  @ApiOperation({
+    description: 'Updates A Feature Flag'
+  })
+  @ApiOkResponse({
+    description: 'Feature Flag Update Successful'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Feature Flag with the supplied id not found'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  update(
+    @Param() params: EntityIdDto,
+    @Body() updateFeatureFlagDto: CreateFeatureFlagDto,
+  ) {
+
+    const { id } = params;
+
+    const responseData = this.featureFlagService.updateFeatureFlag(id, updateFeatureFlagDto);
+
+    return new SuccessResponse(200, 'Feature Flag Updated', responseData);
+
+  }
+
+  @Delete('feature-flags/:id')
+  @ApiOperation({
+    description: 'Deletes a Feature Flag'
+  })
+  @ApiOkResponse({
+    description: 'Feature Flag Deleted Successfully'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Feature Flag with the supplied id not found'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async remove(@Param() params: EntityIdDto) {
+
+    const { id } = params;
+
+    const responseData = await this.featureFlagService.deleteFeatureFlag(id);
+
+    return new SuccessResponse(200, 'Account Deleted', responseData)
   }
 
 

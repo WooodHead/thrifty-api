@@ -1,7 +1,13 @@
-import { Entity, Column, OneToMany, ManyToMany, JoinTable } from 'typeorm';
-import { AbstractEntity } from '../../common/entities/abstract.entity';
-import { User } from '../../user/entities/user.entity';
-import { Transaction } from '../../transaction/entities/transaction.entity';
+import {
+    Entity,
+    Column,
+    OneToMany,
+    ManyToMany,
+    JoinTable
+} from 'typeorm';
+import { AbstractEntity } from '@common/entities/abstract.entity';
+import { User } from '@user/entities/user.entity';
+import { Transaction } from '@transaction/entities/transaction.entity';
 import { AccountStatus, AccountType, AccountCurrency } from '../interfaces/account.interface';
 
 @Entity()
@@ -34,7 +40,7 @@ export class Account extends AbstractEntity {
 
     @OneToMany(() => Transaction, (transactions) => transactions.account)
     transactions: Transaction[];
-    
+
     public genAcctNum(accountNumbers: number[]) {
 
         let accountNumber: number = 1000000000 + Math.floor(Math.random() * 1000000000);
@@ -47,14 +53,14 @@ export class Account extends AbstractEntity {
 
     };
 
-    public generateAccountNumber (accountNumbers: number[]) {
-        
+    public generateAccountNumber(accountNumbers: number[]) {
+
         let accountNumber: number = 1000000000 + Math.floor(Math.random() * 1000000000);
-    
+
         while (accountNumbers.indexOf(accountNumber) !== -1) {
             accountNumber = 1000000000 + Math.floor(Math.random() * 1000000000);
         }
-    
+
         return accountNumber;
     };
 }
