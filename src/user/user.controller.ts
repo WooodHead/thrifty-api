@@ -5,30 +5,29 @@ import {
     Get,
     HttpCode,
     Param,
+    Patch,
     Post,
-    Query,
     UseGuards
 } from '@nestjs/common';
 import {
     ApiTags,
     ApiBearerAuth,
     ApiConsumes,
-    ApiForbiddenResponse,
     ApiOkResponse,
     ApiInternalServerErrorResponse,
     ApiCreatedResponse,
     ApiConflictResponse,
     ApiUnauthorizedResponse,
-    ApiOperation
+    ApiOperation,
 } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
 import { UserDecorator } from './decorators/user.decorator';
 import { Role } from './interfaces/user.interface';
 import { RoleGuard } from '@auth/guards/roles.guard';
-import { PaginateQuery } from 'nestjs-paginate';
 import { SuccessResponse } from '@utils/successResponse';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 
 @Controller('users')
@@ -81,17 +80,49 @@ export class UserController {
 
     }
 
-    @Delete(':id')
+    @Patch(':id')
+    @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
     @ApiBearerAuth()
     @ApiOperation({
-        description: 'Deletes a user account, THIS ENDPOINT IS NOT FULLY COMPLETE'
+        description: 'Updates the current authenticated user basic info'
+    })
+    @ApiOkResponse({
+        description: 'User Updated'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Access Token supplied with the request has expired or is invalid'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Error Occurred while processing the request'
+    })
+    async update(@Body() updateUserDto: UpdateUserDto, @UserDecorator('id') id: string) {
+
+        await this.usersService.update(id, updateUserDto);
+
+        return new SuccessResponse(200, 'User Updated')
+    }
+
+    @Delete(':id')
+    @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+    @ApiBearerAuth()
+    @ApiOperation({
+        description: 'Deletes the current authenticated User'
+    })
+    @ApiOkResponse({
+        description: 'User Deleted'
+    })
+    @ApiUnauthorizedResponse({
+        description: 'Access Token supplied with the request has expired or is invalid'
+    })
+    @ApiInternalServerErrorResponse({
+        description: 'An Internal Error Occurred while processing the request'
     })
     async remove(@Param('id') id: string) {
-        
+
         await this.usersService.delete(id);
 
         return new SuccessResponse(200, 'User Deleted')
-        
+
     }
 
 }

@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { PostgresErrorCodes } from '@common/interfaces/postgresErrorCodes';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserService {
@@ -95,14 +96,23 @@ export class UserService {
         }
     };
 
+    async update(id: string, updateUserDto: UpdateUserDto) {
+        try {
+
+            await this.usersRepository.update(id, updateUserDto);
+
+        } catch (error) {
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
+        }
+    }
+
     async delete(id: string) {
         try {
 
-            const deleteUser = await this.usersRepository.delete(id);
-
-            if (!deleteUser.affected) {
-                throw new NotFoundException(`User With ID: ${id} not found`);
-            }
+            await this.usersRepository.delete(id);
 
         } catch (error) {
             console.error(error.message)

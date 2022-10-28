@@ -107,25 +107,15 @@ export class FeatureFlagService {
 
         } catch (error) {
             if (error?.code === PostgresErrorCodes.UniqueViolation) {
-                throw new HttpException(
-                    'Feature flag with that name already exists',
-                    HttpStatus.BAD_REQUEST,
+                throw new ConflictException(
+                    'Feature flag with that name already exists'
                 );
             }
             throw new HttpException(
-                'Something went wrong',
-                HttpStatus.INTERNAL_SERVER_ERROR,
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
             );
         }
-        const updatedFeatureFlag = await this.featureFlagRepository.findOne({
-            where: {
-                id,
-            },
-        });
-        if (updatedFeatureFlag) {
-            return updatedFeatureFlag;
-        }
-        throw new NotFoundException();
     }
 
     async deleteFeatureFlag(id: string) {
