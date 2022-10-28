@@ -17,5 +17,20 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@*": ["*"],
+      "@account/*": ["src/account/*"],
+      "@api-services/*": ["src/api-services/*"],
+      "@auth/*": ["src/auth/*"],
+      "@business/*": ["src/business/*"],
+      "@common/*": ["src/common/*"],
+      "@config/*": ["src/config/*"],
+      "@savings-group/*": ["src/savings-group/*"],
+      "@services/*": ["src/services/*"],
+      "@transaction/*": ["src/transaction/*"],
+      "@user/*": ["src/user/*"],
+      "@/*": ["src/*"],
+      "@utils/*": ["src/utils/*"]
+    }
   }
 }

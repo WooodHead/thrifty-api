@@ -4683,10 +4683,10 @@ nestjs-firebase@^8.2.3:
   resolved "https://registry.yarnpkg.com/nestjs-firebase/-/nestjs-firebase-8.2.3.tgz#4404c3b07369c7c9066e24c4c9725bec67f9ff8e"
   integrity sha512-E+VYrPzCpW7K9C/hsDtpP+LonwC9kZONcnymgL0aikjUhuSvzxtzBn38K54WhSmk0WvBsFQx3185yNT+sXkdCw==
 
-nestjs-paginate@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/nestjs-paginate/-/nestjs-paginate-4.0.0.tgz#ecd53f35ce4595d36d75ba174f9fdde8ec0dbf7b"
-  integrity sha512-0A/+MGuqpMCoOECs9lX50N/2BU7XC5vQDPKCzJ+OWNDd8TdUo0iWDmap9j5w63ohgsesdvugf0J+QmpcsSUuHw==
+nestjs-paginate@^4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/nestjs-paginate/-/nestjs-paginate-4.3.0.tgz#bcee448b5dfcbb704ac91ff6ddd32fbb16040f64"
+  integrity sha512-dsn2AXQQnxk9H+AUBVpau1Zyh2MGlf5V85RLlxS56AJPhbvObalJ2Kfy4elwoJxdq3sBdA7A2VLQIPDGuCt3pQ==
   dependencies:
     lodash "^4.17.21"
 

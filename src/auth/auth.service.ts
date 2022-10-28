@@ -1,4 +1,10 @@
-import { BadRequestException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    Injectable,
+    UnauthorizedException
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -18,34 +24,62 @@ export class AuthService {
 
     async validateUser(email: string, pass: string): Promise<User> {
         try {
+
             const user = await this.usersService.findOneByEmail(email);
+
             if (user && await user.isPasswordValid(pass)) {
                 user.lastLogin = new Date();
                 await this.usersRepository.save(user);
                 return user;
             };
+
             throw new UnauthorizedException('INVALID CREDENTIALS');
+
         } catch (error) {
-            throw new HttpException(error.message, error.status);
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         }
     };
 
     async validateJwt(sub: string): Promise<any> {
         try {
-            const user = await this.usersRepository.findOneBy({ id: sub });
+
+            const user = await this.usersRepository.findOne({
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    lastLogin: true,
+                    isActive: true,
+                    personalKey: true,
+                    roles: true
+                },
+                where: { id: sub }
+            });
+
             if (user) {
-                const { refreshToken, resetPassword, ...data } = user;
-                return data;
+
+                return user;
             }
+
             throw new UnauthorizedException('Invalid Credentials');
+
         } catch (error) {
-            throw new HttpException(error.message, error.status);
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         }
     }
 
     async login(user: User) {
         try {
+
             const personalKey = await user.generatePersonalKey();
+
             const payload = {
                 sub: user.id,
                 email: user.email,
@@ -57,6 +91,7 @@ export class AuthService {
             };
 
             const token = this.jwtService.sign(payload);
+
             const refreshToken = sign(
                 payload,
                 {
@@ -68,37 +103,69 @@ export class AuthService {
                     expiresIn: '7d'
                 }
             );
-            await user.updateRefreshToken(personalKey, refreshToken);
+
+            await user.updateRefreshToken(refreshToken);
+
             return { token, refreshToken };
+
         } catch (error) {
             console.error(error);
-            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         }
     }
 
     async logout(user: User) {
         try {
+
             const logOutUser = await this.usersRepository.findOneBy({ id: user.id });
-            const personalKey = await logOutUser.generatePersonalKey();
-            await this.usersRepository.save(user);
+
+            await logOutUser.generatePersonalKey();
+
         } catch (error) {
             console.error(error);
-            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         }
     }
 
     async validateRefreshToken(token: string): Promise<any> {
         try {
-            if (!token) throw new BadRequestException('Refresh Token cannot be empty');
-            const decoded = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
-            const user = await this.usersRepository.findOneBy({ id: decoded.sub });
-            if (user && user.validatePersonalKey(decoded.rtk)) {
+
+            if (!token) throw new BadRequestException('Refresh Token Missing');
+
+            const { sub, rtk } = verify(token, this.configService.get<string>('REFRESH_TOKEN_PUBLIC_KEY')) as JwtPayload;
+
+            const user = await this.usersRepository.findOne({
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    lastLogin: true,
+                    isActive: true,
+                    personalKey: true,
+                    roles: true
+                },
+                where: { id: sub }
+            });
+
+            if (user && user.validatePersonalKey(rtk)) {
                 return await this.login(user);
             };
-            throw new UnauthorizedException('Invalid Refresh Token, Please initiate a new login request');
+
+            throw new UnauthorizedException('Invalid Refresh Token');
+
         } catch (error) {
             console.error(error);
-            throw new HttpException(error.message ?? 'SOMETHING WENT WRONG', error.status ?? HttpStatus.INTERNAL_SERVER_ERROR)
+            throw new HttpException(
+                error.message ?? 'SOMETHING WENT WRONG',
+                error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         }
     }
 }

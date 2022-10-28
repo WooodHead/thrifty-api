@@ -12,11 +12,11 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserPasswordDto } from './dto/update-user.dto';
 import { ResetPasswordDto } from './dto/common-user.dto';
-import { EmailService } from '../services/email/email.service';
-import { SendMailOptions } from '../services/email/interfaces/email.interface';
-import { getVerificationEmailTemplate } from '../services/email/templates/verificationCode';
+import { EmailService } from '@services/email/email.service';
+import { SendMailOptions } from '@services/email/interfaces/email.interface';
+import { getVerificationEmailTemplate } from '@services/email/templates/verificationCode';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
-import { PostgresErrorCodes } from '../common/interfaces/postgresErrorCodes';
+import { PostgresErrorCodes } from '@common/interfaces/postgresErrorCodes';
 
 @Injectable()
 export class UserService {
@@ -31,6 +31,7 @@ export class UserService {
 
             return await paginate(query, this.usersRepository, {
                 sortableColumns: ['createdAt'],
+                select: ['id', 'email', 'firstName', 'lastName', 'createdAt', 'lastLogin', 'updatedAt'],
                 defaultSortBy: [['createdAt', 'DESC']],
             });
 
@@ -66,11 +67,23 @@ export class UserService {
     async findOneById(id: string): Promise<Partial<User>> {
         try {
 
-            const foundUser = await this.usersRepository.findOneBy({ id });
+            const foundUser = await this.usersRepository.findOne({
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true,
+                    lastLogin: true,
+                    isActive: true,
+                    personalKey: true,
+                    roles: true
+                },
+                where: { id }
+            });
 
             if (foundUser) {
-                const { refreshToken, resetPassword, password, personalKey, ...data } = foundUser;
-                return data;
+
+                return foundUser;
             };
 
             throw new NotFoundException(`User with id: ${id} does not exist on this server`);
@@ -88,6 +101,7 @@ export class UserService {
         try {
 
             const newUser = this.usersRepository.create(createUserDto);
+
             await this.usersRepository.save(newUser);
 
             return newUser;
@@ -110,17 +124,27 @@ export class UserService {
     async getVerificationCode(email: string): Promise<boolean> {
         try {
 
-            const foundUser = await this.usersRepository.findOneBy({ email });
+            const foundUser = await this.usersRepository.findOne({
+                select: {
+                    id: true,
+                    email: true,
+                    firstName: true,
+                    lastName: true
+                },
+                where: { email }
+            });
 
             if (foundUser) {
 
-                const code = await foundUser.generatePasswordResetCode()
+                const code = await foundUser.generatePasswordResetCode();
+
+                const { firstName, lastName } = foundUser
 
                 const mailOptions: SendMailOptions = [
                     email,
                     'Verification code',
                     `Your verification code is ${code}`,
-                    getVerificationEmailTemplate(foundUser.firstName, foundUser.lastName, code)
+                    getVerificationEmailTemplate(firstName, lastName, code)
                 ];
 
                 await this.emailService.sendEmail(...mailOptions)
@@ -141,16 +165,28 @@ export class UserService {
 
     async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
         try {
-            
+
             const { email, code, password } = resetPasswordDto
-            
-            const foundUser = await this.usersRepository.findOneBy({ email });
-            
+
+            const foundUser = await this.usersRepository.findOne({
+                select: {
+                    id: true,
+                    email: true,
+                    password: true,
+                    resetPassword: {
+                        code: true,
+                        expiresBy: true
+                    }
+                },
+                where: { email }
+            });
+
             if (foundUser && await foundUser.verifyPasswordResetCode(code)) {
-                await this.usersRepository.update(foundUser.id, { password: await foundUser.hashPasswordBeforeUpdate(password) });
-                return true;
+
+                return await foundUser.updatePassword(password)
+
             }
-            
+
             throw new ForbiddenException('Verification code is invalid or it has expired')
 
         } catch (error) {
@@ -164,17 +200,25 @@ export class UserService {
 
     async changePassword(id: string, changePasswordDto: UpdateUserPasswordDto): Promise<boolean> {
         try {
-            
-            const foundUser = await this.usersRepository.findOneBy({ id })
-            
+
+            const foundUser = await this.usersRepository.findOne({
+                select: {
+                    id: true,
+                    password: true
+                },
+                where: { id }
+            });
+
             if (foundUser) {
+
                 const { password } = changePasswordDto;
-                await this.usersRepository.update(foundUser.id, { password: await foundUser.hashPasswordBeforeUpdate(password) });
-                return true;
+
+                return await foundUser.updatePassword(password)
+
             }
-            
+
             throw new NotFoundException(`User with ${id} not found on this server`)
-            
+
         } catch (error) {
             console.error(error)
             throw new HttpException(
@@ -186,11 +230,9 @@ export class UserService {
 
     async delete(id: string) {
         try {
-            
-            await this.usersRepository.delete(id);
-            
-            return true;
-            
+
+            return await this.usersRepository.delete(id);
+
         } catch (error) {
             console.error(error.message)
             throw new HttpException(

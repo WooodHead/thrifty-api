@@ -2,12 +2,13 @@ import { Entity, Column, BeforeInsert, OneToMany, ManyToMany } from 'typeorm';
 import { compare, hash } from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
-import { AbstractEntity } from '../../common/entities/abstract.entity';
-import { UserToSavingsGroup } from '../../common/entities/user-to-savingsgroup.entity';
+import { AbstractEntity } from '@common/entities/abstract.entity';
+import { UserToSavingsGroup } from '@common/entities/user-to-savingsgroup.entity';
 import { IResetPassword, Role } from '../interfaces/user.interface';
-import { SavingsGroup } from '../../savings-group/entities/savings-group.entity';
-import { Account } from '../../account/entities/account.entity';
-import { Transaction } from '../../transaction/entities/transaction.entity';
+import { SavingsGroup } from '@savings-group/entities/savings-group.entity';
+import { Account } from '@account/entities/account.entity';
+import { Transaction } from '@transaction/entities/transaction.entity';
+
 
 @Entity()
 export class User extends AbstractEntity {
@@ -74,22 +75,25 @@ export class User extends AbstractEntity {
         this.password = await hash(this.password, 10);
     }
 
-    async hashPasswordBeforeUpdate(password: string) {
-        return await hash(password, 10);
+    async updatePassword(password: string) {
+        this.password = await hash(password, 10);
+        await this.save()
+        return true
     }
 
     public async isPasswordValid(password: string): Promise<boolean> {
         return await compare(password, this.password);
     }
 
-    public async updateRefreshToken(personalKey: string, refreshToken: string): Promise<void> {
-        this.personalKey = personalKey;
+    public async updateRefreshToken(refreshToken: string): Promise<void> {
         this.refreshToken = refreshToken;
         await this.save();
     }
 
     public async generatePersonalKey(): Promise<string> {
-        return randomBytes(32).toString('hex');
+        this.personalKey = randomBytes(32).toString('hex');
+        await this.save()
+        return this.personalKey
     }
 
     public async validatePersonalKey(personalKey: string): Promise<boolean> {
@@ -100,13 +104,13 @@ export class User extends AbstractEntity {
         const code = randomBytes(3).toString('hex').toUpperCase();
         this.resetPassword.code = await hash(code, 10);
         this.resetPassword.expiresBy = new Date(Date.now() + 300000);
-        this.save();
+        await this.save();
         return code;
     }
 
     public async verifyPasswordResetCode(code: string): Promise<boolean> {
         const validCode = await compare(code, this.resetPassword.code);
         const codeNotExpired = (Date.now() - new Date(this.resetPassword.expiresBy).getTime()) < 300000;
-        return validCode && codeNotExpired;
+        return (validCode && codeNotExpired);
     }
 }

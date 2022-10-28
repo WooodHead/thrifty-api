@@ -15,12 +15,12 @@ import {
 import { Request, Response } from 'express';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { AuthService } from './auth.service';
-import { UserDecorator } from '../user/decorators/user.decorator';
-import { User } from 'src/user/entities/user.entity';
+import { UserDecorator } from '@user/decorators/user.decorator';
+import { User } from '@user/entities/user.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
 import { LoginUserDto } from './dto/login-user.dto';
-import { SuccessResponse } from '../utils/successResponse';
+import { SuccessResponse } from '@utils/successResponse';
 
 
 @ApiTags('Auth')
@@ -34,13 +34,13 @@ export class AuthController {
     @ApiBody({ type: LoginUserDto })
     @ApiConsumes('application/x-www-form-urlencoded', 'application/json')
     @ApiOperation({
-        description: 'Logs in a User with valid email/password combinations'
+        description: 'Login User with valid credentials'
     })
     @ApiOkResponse({
         description: 'Successful Login'
     })
     @ApiUnauthorizedResponse({
-        description: 'Login Attempt failed due to invalid email/password combination'
+        description: 'Login Attempt failed due to invalid credentials'
     })
     @ApiInternalServerErrorResponse({
         description: 'An Internal Server Error occured while processing the request'
@@ -60,7 +60,7 @@ export class AuthController {
     @Post('logout')
     @ApiBearerAuth()
     @ApiOperation({
-        description: 'Logs out a user and clears refresh token cookies'
+        description: 'Log out a user and clears refresh token cookies'
     })
     @ApiOkResponse({
         description: 'Logout successful'
