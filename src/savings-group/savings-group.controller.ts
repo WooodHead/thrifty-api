@@ -22,24 +22,26 @@ import {
   ApiTags,
   ApiUnauthorizedResponse
 } from '@nestjs/swagger';
-import { PaginateQuery } from 'nestjs-paginate';
 import { SavingsGroupService } from './savings-group.service';
 import { CreateSavingsGroupDto } from './dto/create-savings-group.dto';
 import { UpdateSavingsGroupDto } from './dto/update-savings-group.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RoleGuard } from '../auth/guards/roles.guard';
-import { Role } from '../user/interfaces/user.interface';
-import { UserDecorator } from '../user/decorators/user.decorator';
-import { User } from '../user/entities/user.entity';
+import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
+import { RoleGuard } from '@auth/guards/roles.guard';
+import { Role } from '@user/interfaces/user.interface';
+import { UserDecorator } from '@user/decorators/user.decorator';
+import { User } from '@user/entities/user.entity';
 import { ContributeFundsDto, UpdateGroupMemberDto } from './dto/savings-group.dto';
+import { SuccessResponse } from '@src/utils/successResponse';
 
-@Controller('savings-group')
+
+@Controller('savings-groups')
+@UseGuards(JwtAuthGuard)
 @ApiTags('Savings Group')
 @ApiBearerAuth()
 export class SavingsGroupController {
   constructor(private readonly savingsGroupService: SavingsGroupService) { }
 
-  @Post('create')
+  @Post()
   @ApiOperation({
     description: 'Creates a new Savings Group and adds the user making the request as the Savings Group Admin'
   })
@@ -58,13 +60,11 @@ export class SavingsGroupController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   create(@Body() createSavingsGroupDto: CreateSavingsGroupDto, @UserDecorator() user: User) {
     return this.savingsGroupService.create(createSavingsGroupDto, user);
   }
 
-  @Patch('add-group-member')
-  @UseGuards(JwtAuthGuard)
+  @Patch('members/add')
   @ApiOperation({
     description: 'Adds a new member to a Savings Group, only the groupAdmin of a Savings Group can add a member to the group'
   })
@@ -87,11 +87,13 @@ export class SavingsGroupController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async addSavingsGroupMember(@Body() addMemberDto: UpdateGroupMemberDto, @UserDecorator() user: User) {
-    return await this.savingsGroupService.addSavingsGroupMember(addMemberDto, user);
+
+    const responseMessage = await this.savingsGroupService.addSavingsGroupMember(addMemberDto, user);
+
+    return new SuccessResponse(200, responseMessage)
   }
 
-  @Patch('remove-group-member')
-  @UseGuards(JwtAuthGuard)
+  @Patch('members/remove')
   @ApiOperation({
     description: 'Removes a member from to a Savings Group, only the groupAdmin of a Savings Group can remove a member from the group'
   })
@@ -114,11 +116,13 @@ export class SavingsGroupController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async removeGroupMember(@Body() removeMemberDto: UpdateGroupMemberDto, @UserDecorator() user: User) {
-    return await this.savingsGroupService.removeSavingsGroupMember(removeMemberDto, user);
+    
+    const responseMessage = await this.savingsGroupService.removeSavingsGroupMember(removeMemberDto, user);
+
+    return new SuccessResponse(200, responseMessage)
   }
 
-  @Patch('contribute-funds')
-  @UseGuards(JwtAuthGuard)
+  @Patch('contribute')
   @ApiOperation({
     description: 'Members of a Savings Group can contibute funds to their Savings Group with this endpoint'
   })
@@ -140,35 +144,16 @@ export class SavingsGroupController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  contibuteFunds(@UserDecorator() user: User, @Body() contributeFundsDto: ContributeFundsDto) {
-    return this.savingsGroupService.contriubeFundsToGroup(user, contributeFundsDto);
+  async contibuteFunds(@UserDecorator() user: User, @Body() contributeFundsDto: ContributeFundsDto) {
+    
+    const responseMessage = await this.savingsGroupService.contriubeFundsToGroup(user, contributeFundsDto);
+
+    return new SuccessResponse(200, responseMessage)
   }
 
-  @Get('all')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @Get('name')
   @ApiOperation({
-    description: 'Returns All Savings Group on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Savings Group on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findAll(@Query() query: PaginateQuery) {
-    return await this.savingsGroupService.findAll(query);
-  }
-
-  @Get('by-name/:name')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Search for A Savings Group by group name, only Users with Admin Privileges can make a successful request to this endpoint'
+    description: 'Search for A Savings Group by group name, only Group Admin of the group can get the group by name'
   })
   @ApiOkResponse({
     description: 'SUCCESS: Savngs Group with the specified name on the server returned'
@@ -188,35 +173,11 @@ export class SavingsGroupController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  async findByName(@Param('name') name: string) {
-    return await this.savingsGroupService.findByName(name);
-  }
+  async findByName(@Query('name') name: string, @UserDecorator() user: User) {
+    
+    const responseData = await this.savingsGroupService.findByName(name, user);
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns a Savings Group by ID, only Users with Admin Privileges can make a successful request to this endpoint'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Savings Group with the specified ID on the server returned'
-  })
-  @ApiBadRequestResponse({
-    description: 'Required Request Parameter is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Savings Group with the specified ID does not exist on the server'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findOne(@Param('id') id: string) {
-    return await this.savingsGroupService.findOne(id);
+    return new SuccessResponse(200, 'Savings Group Retrieved By Name', responseData);
   }
 
   @Patch(':id')

@@ -5,7 +5,8 @@ import { Between, Repository } from 'typeorm';
 import { Account } from '@account/entities/account.entity';
 import { User } from '@user/entities/user.entity';
 import { Transaction } from '@transaction/entities/transaction.entity';
-import { TransactionDateRangeDto } from '@src/transaction/dto/common-transaction.dto';
+import { TransactionDateRangeDto } from '@transaction/dto/common-transaction.dto';
+import { SavingsGroup } from '@savings-group/entities/savings-group.entity';
 
 
 @Injectable()
@@ -14,7 +15,8 @@ export class AdminService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Account) private readonly accountRepository: Repository<Account>,
-    @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>
+    @InjectRepository(Transaction) private readonly transactionRepository: Repository<Transaction>,
+    @InjectRepository(SavingsGroup) private readonly savingsGroupRepository: Repository<SavingsGroup>
   ) { }
 
   async findAllUsers(query: PaginateQuery): Promise<Paginated<User>> {
@@ -146,6 +148,54 @@ export class AdminService {
         defaultSortBy: [['createdAt', 'DESC']],
         where: { createdAt: Between(new Date(fromDate), new Date(toDate)) },
       });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  };
+
+  async findAllSavingsGroups(query: PaginateQuery): Promise<Paginated<SavingsGroup>> {
+    try {
+      return await paginate(query, this.savingsGroupRepository, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+      });
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findSavingsGroupByID(id: string): Promise<SavingsGroup> {
+    try {
+
+      const savingsGroup = await this.savingsGroupRepository
+        .createQueryBuilder('savingsGroup')
+        .where('savingsGroup.id = :id', { id })
+        .leftJoinAndSelect('savingsGroup.groupAdmin', 'groupAdmin')
+        .select([
+          'savingsGroup.id',
+          'savingsGroup.groupName',
+          'savingsGroup.groupType',
+          'savingsGroup.groupDescription',
+          'savingsGroup.createdAt',
+          'savingsGroup.updatedAt',
+          'groupAdmin.id'
+        ])
+        .leftJoinAndSelect('savingsGroup.groupMembers', 'groupMembers')
+        .getOne();
+
+
+      if (savingsGroup) return savingsGroup;
+
+      throw new NotFoundException(`Transaction with ID: ${id} not found on this server`);
 
     } catch (error) {
       console.error(error);

@@ -9,7 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
 import { PostgresErrorCodes } from '@common/interfaces/postgresErrorCodes';
-import { CreateFeatureFlagDto } from '../dto/featureFlag.dto';
+import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from '../dto/featureFlag.dto';
 import { FeatureFlag } from '../entities/featureFlag.entity';
 
 
@@ -96,10 +96,10 @@ export class FeatureFlagService {
         }
     };
 
-    async updateFeatureFlag(id: string, featureFlag: CreateFeatureFlagDto) {
+    async updateFeatureFlag(id: string, updateFeatureFlagDto: UpdateFeatureFlagDto) {
         try {
 
-            const updatedFlag = await this.featureFlagRepository.update(id, featureFlag);
+            const updatedFlag = await this.featureFlagRepository.update(id, updateFeatureFlagDto);
 
             if (!updatedFlag.affected) {
                 throw new NotFoundException(`Flag With ID: ${id} not found`);

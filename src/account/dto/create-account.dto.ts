@@ -8,14 +8,14 @@ export class CreateAccountDto {
     @ApiProperty()
     @MinLength(3)
     @IsString()
-    accountName: string;
+    readonly accountName: string;
 
     @ApiProperty()
     @IsUUID(4, { each: true })
     @ArrayNotEmpty()
-    accountHolders: string[];
+    readonly accountHolders: string[];
 
     @ApiProperty()
     @IsEnum(AccountType)
-    accountType: AccountType;
+    readonly accountType: AccountType;
 }

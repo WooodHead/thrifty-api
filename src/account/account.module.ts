@@ -21,8 +21,9 @@ import { BillPaymentService } from '@services/bill-payment/bill-payment.service'
     }),
     DefaultAdminModule,
     TransactionModule,
-    UserModule],
-    exports: [TypeOrmModule],
+    UserModule
+  ],
+  exports: [TypeOrmModule],
   controllers: [AccountController],
   providers: [AccountService, BillPaymentService]
 })

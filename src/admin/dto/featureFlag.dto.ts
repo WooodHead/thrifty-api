@@ -1,5 +1,5 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { MinLength, IsString } from "class-validator";
+import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { MinLength, IsString, IsBoolean } from 'class-validator';
 
 
 export class CreateFeatureFlagDto {
@@ -7,5 +7,12 @@ export class CreateFeatureFlagDto {
     @ApiProperty()
     @MinLength(3)
     @IsString()
-    name: string;
+    readonly name: string;
+
+    @ApiProperty()
+    @IsBoolean()
+    readonly isEnabled: boolean;
+
 }
+
+export class UpdateFeatureFlagDto extends PartialType(CreateFeatureFlagDto) { }

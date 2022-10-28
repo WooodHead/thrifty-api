@@ -32,7 +32,7 @@ import { BillPaymentService } from '@services/bill-payment/bill-payment.service'
 import { BillCategoryDto } from '@services/bill-payment/dto/bill-payment.dto';
 import { EntityIdDto } from './dto/admin.dto';
 import { FeatureFlagService } from './feature-flag/feature-flag.service';
-import { CreateFeatureFlagDto } from './dto/featureFlag.dto';
+import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from './dto/featureFlag.dto';
 import { FeatureFlagGuard } from './feature-flag/feature-flag.guard';
 import { TransactionDateDto, TransactionDateRangeDto } from '@transaction/dto/common-transaction.dto';
 
@@ -129,6 +129,177 @@ export class AdminController {
     return new SuccessResponse(200, 'Account Retrieved By ID', responseData)
   };
 
+  @Get('transactions')
+  @ApiOperation({
+    description: `Returns All Transactions on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findAllTransactions(@Query() query: PaginateQuery) {
+
+    const responseData = await this.adminService.findAllTransactions(query);
+
+    return new SuccessResponse(200, 'All Transactions', responseData)
+
+  }
+
+  @Get('transactions/:id')
+  @ApiOperation({
+    description: 'Returns a Transaction by ID, only Users with Admin Privileges can make a successful request to this endpoint'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Transaction with the specified ID on the server returned'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Parameter is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Savings Group with the specified ID does not exist on the server'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findOne(@Param() params: EntityIdDto) {
+
+    const { id } = params;
+
+    const responseData = await this.adminService.findTransactionByID(id);
+
+    return new SuccessResponse(200, 'Transaction Retrieved By ID', responseData);
+
+  }
+
+  @Get('transactions/date/:searchDate')
+  @ApiOperation({
+    description: `Returns All Transactions done on a given date on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions for the specified date on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findByDate(
+    @Param() params: TransactionDateDto,
+    @Query() query: PaginateQuery,
+  ) {
+
+    const responseData = await this.adminService.findTransactionByDate(params.searchDate, query);
+
+    return new SuccessResponse(200, 'Transactions By Date', responseData)
+
+  }
+
+  @Get('transactions/date-range')
+  @ApiOperation({
+    description: `Returns All Transactions within a given date range on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
+  })
+  @ApiOkResponse({
+    description: 'All Transactions within the specified date range on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findByDateRange(
+    @Body() dateRangeDto: TransactionDateRangeDto,
+    @Query() query: PaginateQuery,
+  ) {
+
+    const responseData = await this.adminService.findTransactionByDateRange(dateRangeDto, query);
+
+    return new SuccessResponse(200, 'All Transactions By Date Range', responseData);
+
+  }
+
+  @Get('savings-groups')
+  @ApiOperation({
+    description: `Returns All Savings Group on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Savings Group on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findAll(@Query() query: PaginateQuery) {
+    
+    const responseData = await this.adminService.findAllSavingsGroups(query);
+
+    return new SuccessResponse(200, 'All Savings Groups', responseData);
+  }
+
+  @Get('savings-group/:id')
+  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @ApiOperation({
+    description: 'Returns a Savings Group by ID, only Users with Admin Privileges can make a successful request to this endpoint'
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: Savings Group with the specified ID on the server returned'
+  })
+  @ApiBadRequestResponse({
+    description: 'Required Request Parameter is empty or contains unacceptable values'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiNotFoundResponse({
+    description: 'Savings Group with the specified ID does not exist on the server'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findSavingsGroupByID(@Param('id') id: string) {
+    
+    const responseData = await this.adminService.findSavingsGroupByID(id);
+
+    return new SuccessResponse(200, 'Savings Group Retrieved By ID', responseData);
+  }
+
   @Get('bill-payment/products')
   @ApiOperation({
     description: 'Returns all Product types for making bill payments. Admin privileges required to call this endpoint'
@@ -189,62 +360,6 @@ export class AdminController {
 
   };
 
-  @Get('transactions')
-  @ApiOperation({
-    description: 'Returns All Transactions on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Transactions on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findAllTransactions(@Query() query: PaginateQuery) {
-
-    const responseData = await this.adminService.findAllTransactions(query);
-
-    return new SuccessResponse(200, 'All Transactions', responseData)
-
-  }
-
-  @Get('transactions/:id')
-  @ApiOperation({
-    description: 'Returns a Transaction by ID, only Users with Admin Privileges can make a successful request to this endpoint'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: Transaction with the specified ID on the server returned'
-  })
-  @ApiBadRequestResponse({
-    description: 'Required Request Parameter is empty or contains unacceptable values'
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiNotFoundResponse({
-    description: 'Savings Group with the specified ID does not exist on the server'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findOne(@Param() params: EntityIdDto) {
-
-    const { id } = params;
-
-    const responseData = await this.adminService.findTransactionByID(id);
-
-    return new SuccessResponse(200, 'Transaction Retrieved By ID', responseData);
-
-  }
-
   @Post('feature-flags')
   @ApiOperation({
     description: 'Creates a new Flag'
@@ -292,16 +407,16 @@ export class AdminController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  update(
+  async updateFeatureFlag(
     @Param() params: EntityIdDto,
-    @Body() updateFeatureFlagDto: CreateFeatureFlagDto,
+    @Body() updateFeatureFlagDto: UpdateFeatureFlagDto,
   ) {
 
     const { id } = params;
 
-    const responseData = this.featureFlagService.updateFeatureFlag(id, updateFeatureFlagDto);
+    await this.featureFlagService.updateFeatureFlag(id, updateFeatureFlagDto);
 
-    return new SuccessResponse(200, 'Feature Flag Updated', responseData);
+    return new SuccessResponse(200, 'Feature Flag Updated');
 
   }
 
@@ -324,71 +439,13 @@ export class AdminController {
   @ApiInternalServerErrorResponse({
     description: 'An Internal Error Occurred while processing the request'
   })
-  async remove(@Param() params: EntityIdDto) {
+  async removeFeatureFlag(@Param() params: EntityIdDto) {
 
     const { id } = params;
 
-    const responseData = await this.featureFlagService.deleteFeatureFlag(id);
+    await this.featureFlagService.deleteFeatureFlag(id);
 
-    return new SuccessResponse(200, 'Account Deleted', responseData)
-  }
-
-  @Get('transactions/date-range')
-  @ApiOperation({
-    description: `Returns All Transactions within a given date range on the Server, 
-    only Users with Admin Privileges can make a successful request to this endpoint. 
-    Request can be paginated`
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Transactions within the specified date range on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findByDateRange(
-    @Body() dateRangeDto: TransactionDateRangeDto,
-    @Query() query: PaginateQuery,
-  ) {
-
-    const responseData = await this.adminService.findTransactionByDateRange(dateRangeDto, query);
-
-    return new SuccessResponse(200, 'All Transactions By Date Range', responseData);
-
-  }
-
-  @Get('transactions/date/:searchDate')
-  @ApiOperation({
-    description: `Returns All Transactions done on a given date on the Server, 
-    only Users with Admin Privileges can make a successful request to this endpoint. 
-    Request can be paginated`
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Transactions for the specified date on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findByDate(
-    @Param() params: TransactionDateDto,
-    @Query() query: PaginateQuery,
-  ) {
-
-    const responseData = await this.adminService.findTransactionByDate(params.searchDate, query);
-
-    return new SuccessResponse(200, 'Transactions By Date', responseData)
-
+    return new SuccessResponse(200, 'Account Deleted')
   }
 
 }

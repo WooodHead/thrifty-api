@@ -9,6 +9,7 @@ import { BillPaymentService } from '@services/bill-payment/bill-payment.service'
 import { TransactionModule } from '@transaction/transaction.module';
 import { FeatureFlag } from './entities/featureFlag.entity';
 import { FeatureFlagService } from './feature-flag/feature-flag.service';
+import { SavingsGroupModule } from '@savings-group/savings-group.module';
 
 
 @Module({
@@ -16,6 +17,7 @@ import { FeatureFlagService } from './feature-flag/feature-flag.service';
     AccountModule,
     UserModule,
     TransactionModule,
+    SavingsGroupModule,
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 10000,
