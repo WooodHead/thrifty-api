@@ -34,6 +34,7 @@ import { EntityIdDto } from './dto/admin.dto';
 import { FeatureFlagService } from './feature-flag/feature-flag.service';
 import { CreateFeatureFlagDto } from './dto/featureFlag.dto';
 import { FeatureFlagGuard } from './feature-flag/feature-flag.guard';
+import { TransactionDateDto, TransactionDateRangeDto } from '@transaction/dto/common-transaction.dto';
 
 
 @Controller('admin')
@@ -73,7 +74,9 @@ export class AdminController {
 
   @Get('accounts')
   @ApiOperation({
-    description: 'Returns All Accounts on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+    description: `Returns All Accounts on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
   })
   @ApiOkResponse({
     description: 'SUCCESS: All Accounts on the server returned',
@@ -187,7 +190,6 @@ export class AdminController {
   };
 
   @Get('transactions')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns All Transactions on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
   })
@@ -212,7 +214,6 @@ export class AdminController {
   }
 
   @Get('transactions/:id')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
   @ApiOperation({
     description: 'Returns a Transaction by ID, only Users with Admin Privileges can make a successful request to this endpoint'
   })
@@ -332,5 +333,62 @@ export class AdminController {
     return new SuccessResponse(200, 'Account Deleted', responseData)
   }
 
+  @Get('transactions/date-range')
+  @ApiOperation({
+    description: `Returns All Transactions within a given date range on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions within the specified date range on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findByDateRange(
+    @Body() dateRangeDto: TransactionDateRangeDto,
+    @Query() query: PaginateQuery,
+  ) {
+
+    const responseData = await this.adminService.findTransactionByDateRange(dateRangeDto, query);
+
+    return new SuccessResponse(200, 'All Transactions By Date Range', responseData);
+
+  }
+
+  @Get('transactions/date/:searchDate')
+  @ApiOperation({
+    description: `Returns All Transactions done on a given date on the Server, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
+  })
+  @ApiOkResponse({
+    description: 'SUCCESS: All Transactions for the specified date on the server returned',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  async findByDate(
+    @Param() params: TransactionDateDto,
+    @Query() query: PaginateQuery,
+  ) {
+
+    const responseData = await this.adminService.findTransactionByDate(params.searchDate, query);
+
+    return new SuccessResponse(200, 'Transactions By Date', responseData)
+
+  }
 
 }

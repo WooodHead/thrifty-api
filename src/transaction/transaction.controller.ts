@@ -41,62 +41,6 @@ import { SuccessResponse } from '../utils/successResponse';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
-  @Get('date-range')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns All Transactions within a given date range on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Transactions within the specified date range on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findByDateRange(
-    @Body() dateRangeDto: TransactionDateRangeDto,
-    @Query() query: PaginateQuery,
-  ) {
-
-    const responseData = await this.transactionService.findByDateRange(dateRangeDto, query);
-
-    return new SuccessResponse(200, 'All Transactions By Date Range', responseData);
-
-  }
-
-  @Get('date/:searchDate')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  @ApiOperation({
-    description: 'Returns All Transactions done on a given date on the Server, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
-  })
-  @ApiOkResponse({
-    description: 'SUCCESS: All Transactions for the specified date on the server returned',
-  })
-  @ApiUnauthorizedResponse({
-    description: 'Access Token supplied with the request has expired or is invalid'
-  })
-  @ApiForbiddenResponse({
-    description: 'User does not have the Required Permission for the requested operation'
-  })
-  @ApiInternalServerErrorResponse({
-    description: 'An Internal Error Occurred while processing the request'
-  })
-  async findByDate(
-    @Param() params: TransactionDateDto,
-    @Query() query: PaginateQuery,
-  ) {
-
-    const responseData = await this.transactionService.findByDate(params.searchDate, query);
-
-    return new SuccessResponse(200, 'Transactions By Date', responseData)
-
-  }
-
   @Get('user')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({
@@ -171,7 +115,7 @@ export class TransactionController {
     @Query() query: PaginateQuery,
     @UserDecorator('id') id: string,
   ) {
-    
+
     const responseData = await this.transactionService.findByUserAndDateRange(
       id,
       dateRangeDto,
@@ -183,9 +127,11 @@ export class TransactionController {
   }
 
   @Get('account')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Returns All Transactions done on a given Account by the Account ID, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+    description: `Returns All Transactions done by the authenticated on a given Account by the Account ID, 
+    only Users with Admin Privileges can make a successful request to this endpoint. 
+    Request can be paginated`
   })
   @ApiOkResponse({
     description: 'SUCCESS: All Transactions for the specified Account ID on the server returned',
@@ -202,20 +148,22 @@ export class TransactionController {
   async findByAccount(
     @Body() accountIDDto: AccountIdDto,
     @Query() query: PaginateQuery,
+    @UserDecorator('id') id: string,
   ) {
 
     const { accountId } = accountIDDto;
 
-    const responseData = await this.transactionService.findByAccount(accountId, query);
+    const responseData = await this.transactionService.findByAccountAndUser(accountId, id, query);
 
     return new SuccessResponse(200, 'Transactions Retrieved By Account', responseData);
 
   }
 
   @Get('account/date')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Returns All Transactions done on a given Account by the Account ID on a given date, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+    description: `Returns All Transactions done by the authenticated on a given Account by the Account ID on a given date, 
+    Request can be paginated`
   })
   @ApiOkResponse({
     description: 'SUCCESS: All Transactions for the specified Account ID on the given search date returned',
@@ -232,20 +180,23 @@ export class TransactionController {
   async findByAccountAndDate(
     @Body() transactionDateDto: TransactionAccountDateDto,
     @Query() query: PaginateQuery,
+    @UserDecorator('id') id: string,
   ) {
 
-    const responseData = await this.transactionService.findByAccountAndDate(
+    const responseData = await this.transactionService.findByAccountUserAndDate(
       transactionDateDto,
       query,
+      id
     );
 
     return new SuccessResponse(200, 'Transaction Retreived By Account and Date', responseData)
   }
 
   @Get('account/date-range')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({
-    description: 'Returns All Transactions done on a given Account by the Account ID and by a given date range, only Users with Admin Privileges can make a successful request to this endpoint. Request can be paginated'
+    description: `Returns All Transactions done by the authenticated on a given Account by the Account ID and by a given date range. 
+    Request can be paginated`
   })
   @ApiOkResponse({
     description: 'SUCCESS: All Transactions for the specified Account ID on the given search date range returned',
@@ -262,11 +213,13 @@ export class TransactionController {
   async findByAccountAndDateRange(
     @Body() dateRangeDto: TransactionAccountDateRangeDto,
     @Query() query: PaginateQuery,
+    @UserDecorator('id') id: string,
   ) {
 
-    const responseData = await this.transactionService.findByAccountAndDateRange(
+    const responseData = await this.transactionService.findByAccountUserAndDateRange(
       dateRangeDto,
       query,
+      id
     );
 
     return new SuccessResponse(200, 'Transactions Retrieved By Date Range', responseData)

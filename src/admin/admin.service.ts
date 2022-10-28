@@ -1,12 +1,11 @@
 import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginateQuery, Paginated, paginate } from 'nestjs-paginate';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Account } from '@account/entities/account.entity';
 import { User } from '@user/entities/user.entity';
 import { Transaction } from '@transaction/entities/transaction.entity';
-import { FeatureFlag } from './entities/featureFlag.entity';
-
+import { TransactionDateRangeDto } from '@src/transaction/dto/common-transaction.dto';
 
 
 @Injectable()
@@ -104,6 +103,49 @@ export class AdminService {
       if (transaction) return transaction;
 
       throw new NotFoundException(`Transaction with ID: ${id} not found`);
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findTransactionByDate(searchDate: Date, query: PaginateQuery): Promise<Paginated<Transaction>> {
+    try {
+
+      const endDate = new Date(searchDate).getTime() + 86400000;
+
+      return await paginate(query, this.transactionRepository, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+        where: { createdAt: Between(new Date(searchDate), new Date(endDate)) },
+      });
+
+    } catch (error) {
+      console.error(error);
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findTransactionByDateRange(
+    dateRangeDto: TransactionDateRangeDto,
+    query: PaginateQuery)
+    : Promise<Paginated<Transaction>> {
+    try {
+
+      const { fromDate, toDate } = dateRangeDto;
+
+      return await paginate(query, this.transactionRepository, {
+        sortableColumns: ['createdAt'],
+        defaultSortBy: [['createdAt', 'DESC']],
+        where: { createdAt: Between(new Date(fromDate), new Date(toDate)) },
+      });
 
     } catch (error) {
       console.error(error);
