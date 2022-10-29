@@ -5,8 +5,3 @@ export enum Role {
     SYSTEM_ADMIN = '2b2acf76-03d7-4fa3-989c-1f186c344647',
     USER = 'f3320a74-64c7-4c52-ac05-7866de5d1d54',
 };
-
-export interface IResetPassword {
-    code: string;
-    expiresBy: Date;
-};

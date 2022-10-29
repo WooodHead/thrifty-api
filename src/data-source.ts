@@ -6,6 +6,7 @@ import { Account } from './account/entities/account.entity';
 import { Transaction } from './transaction/entities/transaction.entity';
 import { SavingsGroup } from './savings-group/entities/savings-group.entity';
 import { UserToSavingsGroup } from './common/entities/user-to-savingsgroup.entity';
+import { ResetCode } from '@auth/entities/resetCode.entity'
 
 config()
 
@@ -22,6 +23,7 @@ export const AppDataSource = new DataSource({
         Transaction,
         User,
         UserToSavingsGroup,
+        ResetCode,
         AdminUserEntity
     ],
     migrations: ['dist/migrations/*.js'],

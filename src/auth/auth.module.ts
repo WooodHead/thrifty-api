@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DefaultAdminModule } from 'nestjs-admin';
 import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { PassportModule } from '@nestjs/passport';
@@ -8,6 +10,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { EmailService } from '@services/email/email.service';
+import { ResetCode } from './entities/resetCode.entity';
 
 
 @Module({
@@ -23,10 +26,11 @@ import { EmailService } from '@services/email/email.service';
       useFactory: async (configService: ConfigService) => ({
         publicKey: configService.get<string>('ACCESS_TOKEN_PUBLIC_KEY'),
         privateKey: { key: configService.get<string>('ACCESS_TOKEN_PRIVATE_KEY'), passphrase: configService.get<string>('ACCESS_TOKEN_SECRET') },
-        signOptions: { algorithm: 'RS256', audience: 'http://localhost:3000', expiresIn: '15m', issuer: 'http://localhost:3000', },
+        signOptions: { algorithm: 'RS256', audience: 'thrifty-api', expiresIn: '1h', issuer: 'thrifty-api'},
       }),
-    })
-
+    }),
+    TypeOrmModule.forFeature([ResetCode]),
+    DefaultAdminModule,
   ],
   exports: [AuthService],
   providers: [

@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, Post, UseGuards, Req, Res, Put } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    HttpCode,
+    Post,
+    UseGuards,
+    Req,
+    Res,
+    Put
+} from '@nestjs/common';
 import {
     ApiBasicAuth,
     ApiBearerAuth,
@@ -22,8 +31,11 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { cookieOptions } from './constants/auth.constant';
 import { LoginUserDto } from './dto/login-user.dto';
 import { SuccessResponse } from '@utils/successResponse';
-import { ValidEmailDto, ResetPasswordDto } from '@user/dto/common-user.dto';
-import { UpdateUserPasswordDto } from '@user/dto/update-user.dto';
+import {
+    ChangePasswordDto,
+    ValidEmailDto,
+    ResetPasswordDto
+} from './dto/auth.dto';
 
 
 @ApiTags('Auth')
@@ -129,9 +141,9 @@ export class AuthController {
         description: 'An Internal Error Occurred while processing the request'
     })
     async getVerificationCode(@Body() emailDto: ValidEmailDto) {
-        
+
         const { email } = emailDto;
-        
+
         await this.authService.getVerificationCode(email);
 
         return new SuccessResponse(200, 'Verification Code Sent')
@@ -174,7 +186,7 @@ export class AuthController {
     })
     @HttpCode(204)
     @UseGuards(JwtAuthGuard)
-    async changePassword(@UserDecorator('id') id: string, @Body() changePasswordDto: UpdateUserPasswordDto) {
+    async changePassword(@UserDecorator('id') id: string, @Body() changePasswordDto: ChangePasswordDto) {
         return this.authService.changePassword(id, changePasswordDto)
     }
 }

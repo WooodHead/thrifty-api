@@ -15,10 +15,11 @@ import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { UserService } from '@user/user.service';
 import { EmailService } from '@services/email/email.service';
 import { User } from '@user/entities/user.entity';
-import { UpdateUserPasswordDto } from '@user/dto/update-user.dto';
-import { ResetPasswordDto } from '@user/dto/common-user.dto';
+import { ChangePasswordDto, ResetPasswordDto } from './dto/auth.dto';
 import { SendMailOptions } from '@services/email/interfaces/email.interface';
 import { getVerificationEmailTemplate } from '@services/email/templates/verificationCode';
+import { ResetCode } from './entities/resetCode.entity';
+
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,7 @@ export class AuthService {
         private readonly configService: ConfigService,
         private readonly emailService: EmailService,
         @InjectRepository(User) private readonly usersRepository: Repository<User>,
+        @InjectRepository(ResetCode) private readonly resetCodeRepository: Repository<ResetCode>,
     ) { }
 
     async validateUser(email: string, pass: string): Promise<User> {
@@ -192,23 +194,46 @@ export class AuthService {
 
             if (foundUser) {
 
-                const code = await foundUser.generatePasswordResetCode();
+                const prevCode = await this.resetCodeRepository.findOneBy({ email });
 
-                const { firstName, lastName } = foundUser
+                if (prevCode) {
 
-                const mailOptions: SendMailOptions = [
-                    email,
-                    'Verification code',
-                    `Your verification code is ${code}`,
-                    getVerificationEmailTemplate(firstName, lastName, code)
-                ];
+                    const { firstName, lastName } = foundUser;
 
-                await this.emailService.sendEmail(...mailOptions)
+                    const mailOptions: SendMailOptions = [
+                        email,
+                        'Verification code',
+                        `Your verification code is ${prevCode.code}`,
+                        getVerificationEmailTemplate(firstName, lastName, prevCode.code)
+                    ];
 
-                return true
+                    await this.emailService.sendEmail(...mailOptions);
+
+                    return true
+
+                } else {
+
+                    const newResetCode = this.resetCodeRepository.create({ email });
+
+                    const code = await newResetCode.generateResetCode();
+
+                    const { firstName, lastName } = foundUser;
+
+                    const mailOptions: SendMailOptions = [
+                        email,
+                        'Verification code',
+                        `Your verification code is ${code}`,
+                        getVerificationEmailTemplate(firstName, lastName, code)
+                    ];
+
+                    await this.emailService.sendEmail(...mailOptions);
+
+                    return true
+
+                }
             }
 
-            throw new NotFoundException(`User with email: ${email} not found on this server`)
+            throw new UnauthorizedException()
 
         } catch (error) {
             console.error(error)
@@ -222,28 +247,37 @@ export class AuthService {
     async resetPassword(resetPasswordDto: ResetPasswordDto): Promise<boolean> {
         try {
 
-            const { email, code, password } = resetPasswordDto
+            const { email, code, newPassword } = resetPasswordDto;
 
-            const foundUser = await this.usersRepository.findOne({
-                select: {
-                    id: true,
-                    email: true,
-                    password: true,
-                    resetPassword: {
-                        code: true,
-                        expiresBy: true
-                    }
-                },
-                where: { email }
-            });
+            const prevCode = await this.resetCodeRepository.findOneBy({ email });
 
-            if (foundUser && await foundUser.verifyPasswordResetCode(code)) {
+            if (prevCode && await prevCode.verifyResetCode(code)) {
 
-                return await foundUser.updatePassword(password)
+                const userExists = await this.usersRepository.findOne({
+                    select: {
+                        id: true,
+                        email: true,
+                        password: true,
+                    },
+                    where: { email }
+                });
+
+                if (userExists) {
+
+                    await userExists.updatePassword(newPassword);
+
+                    await this.resetCodeRepository.remove(prevCode);
+
+                    return true
+                }
+
+                throw new UnauthorizedException('Invalid Credentials');
+
+            } else {
+
+                throw new UnauthorizedException('Invalid Credentials');
 
             }
-
-            throw new ForbiddenException('Verification code is invalid or it has expired')
 
         } catch (error) {
             console.error(error)
@@ -254,9 +288,11 @@ export class AuthService {
         }
     }
 
-    async changePassword(id: string, changePasswordDto: UpdateUserPasswordDto): Promise<boolean> {
+    async changePassword(id: string, changePasswordDto: ChangePasswordDto): Promise<boolean> {
         try {
 
+            const { currentPassword, newPassword } = changePasswordDto;
+            
             const foundUser = await this.usersRepository.findOne({
                 select: {
                     id: true,
@@ -265,15 +301,13 @@ export class AuthService {
                 where: { id }
             });
 
-            if (foundUser) {
+            if (foundUser && await foundUser.isPasswordValid(currentPassword)) {
 
-                const { password } = changePasswordDto;
-
-                return await foundUser.updatePassword(password)
+                return await foundUser.updatePassword(newPassword);
 
             }
 
-            throw new NotFoundException(`User with ${id} not found on this server`)
+            throw new UnauthorizedException();
 
         } catch (error) {
             console.error(error)

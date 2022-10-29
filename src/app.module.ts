@@ -19,10 +19,13 @@ import { Account } from './account/entities/account.entity';
 import { Transaction } from './transaction/entities/transaction.entity';
 import { SavingsGroup } from './savings-group/entities/savings-group.entity';
 import { UserToSavingsGroup } from './common/entities/user-to-savingsgroup.entity';
+import { ResetCode } from './auth/entities/resetCode.entity';
 import { HttpCacheInterceptor } from './common/interceptors/http-cache-interceptor';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdminModule } from './admin/admin.module';
 import configuration from './config/configuration';
+
+
 
 @Module({
   imports: [
@@ -46,6 +49,7 @@ import configuration from './config/configuration';
           Transaction,
           User,
           UserToSavingsGroup,
+          ResetCode,
           AdminUserEntity
         ],
         migrations: ['dist/migrations/*.js'],

@@ -4,7 +4,7 @@ import { randomBytes } from 'crypto';
 import { Exclude } from 'class-transformer';
 import { AbstractEntity } from '@common/entities/abstract.entity';
 import { UserToSavingsGroup } from '@common/entities/user-to-savingsgroup.entity';
-import { IResetPassword, Role } from '../interfaces/user.interface';
+import { Role } from '../interfaces/user.interface';
 import { SavingsGroup } from '@savings-group/entities/savings-group.entity';
 import { Account } from '@account/entities/account.entity';
 import { Transaction } from '@transaction/entities/transaction.entity';
@@ -61,9 +61,6 @@ export class User extends AbstractEntity {
     @OneToMany(() => Transaction, (transaction) => transaction.customer)
     transactions: Transaction[];
 
-    @Column('jsonb', { nullable: true, default: {} })
-    resetPassword: IResetPassword;
-
     @Column('varchar', { nullable: true })
     refreshToken: string;
 
@@ -100,17 +97,4 @@ export class User extends AbstractEntity {
         return this.personalKey === personalKey;
     }
 
-    public async generatePasswordResetCode(): Promise<string> {
-        const code = randomBytes(3).toString('hex').toUpperCase();
-        this.resetPassword.code = await hash(code, 10);
-        this.resetPassword.expiresBy = new Date(Date.now() + 300000);
-        await this.save();
-        return code;
-    }
-
-    public async verifyPasswordResetCode(code: string): Promise<boolean> {
-        const validCode = await compare(code, this.resetPassword.code);
-        const codeNotExpired = (Date.now() - new Date(this.resetPassword.expiresBy).getTime()) < 300000;
-        return (validCode && codeNotExpired);
-    }
 }
