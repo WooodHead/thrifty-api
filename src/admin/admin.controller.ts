@@ -33,7 +33,6 @@ import { BillCategoryDto } from '@services/bill-payment/dto/bill-payment.dto';
 import { EntityIdDto } from './dto/admin.dto';
 import { FeatureFlagService } from './feature-flag/feature-flag.service';
 import { CreateFeatureFlagDto, UpdateFeatureFlagDto } from './dto/featureFlag.dto';
-import { FeatureFlagGuard } from './feature-flag/feature-flag.guard';
 import { TransactionDateDto, TransactionDateRangeDto } from '@transaction/dto/common-transaction.dto';
 
 
@@ -327,10 +326,9 @@ export class AdminController {
 
   };
 
-  @Get('bill-payment/products')
-  @UseGuards(FeatureFlagGuard('bill-payment-product-type'))   // Temporary: This is to test feature flags
+  @Get('bill-payment/products/type')
   @ApiOperation({
-    description: 'Returns all Product types for making bill payments filtered by type category. Admin privileges required to call this endpoint'
+    description: 'Returns bill payments products filtered by bill type. Admin privileges required to call this endpoint'
   })
   @ApiOkResponse({
     description: 'SUCCESS: All available bill payment product types matching the filter criteria returned'

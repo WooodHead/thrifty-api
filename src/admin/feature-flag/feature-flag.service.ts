@@ -106,11 +106,13 @@ export class FeatureFlagService {
             }
 
         } catch (error) {
+            
             if (error?.code === PostgresErrorCodes.UniqueViolation) {
                 throw new ConflictException(
                     'Feature flag with that name already exists'
                 );
             }
+            
             throw new HttpException(
                 error.message ?? 'SOMETHING WENT WRONG',
                 error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,

@@ -26,12 +26,11 @@ import { SavingsGroupService } from './savings-group.service';
 import { CreateSavingsGroupDto } from './dto/create-savings-group.dto';
 import { UpdateSavingsGroupDto } from './dto/update-savings-group.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
-import { RoleGuard } from '@auth/guards/roles.guard';
-import { Role } from '@user/interfaces/user.interface';
 import { UserDecorator } from '@user/decorators/user.decorator';
 import { User } from '@user/entities/user.entity';
 import { ContributeFundsDto, UpdateGroupMemberDto } from './dto/savings-group.dto';
-import { SuccessResponse } from '@src/utils/successResponse';
+import { SuccessResponse } from '@utils/successResponse';
+import { FeatureFlagGuard } from '@admin/feature-flag/feature-flag.guard';
 
 
 @Controller('savings-groups')
@@ -116,7 +115,7 @@ export class SavingsGroupController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async removeGroupMember(@Body() removeMemberDto: UpdateGroupMemberDto, @UserDecorator() user: User) {
-    
+
     const responseMessage = await this.savingsGroupService.removeSavingsGroupMember(removeMemberDto, user);
 
     return new SuccessResponse(200, responseMessage)
@@ -145,7 +144,7 @@ export class SavingsGroupController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async contibuteFunds(@UserDecorator() user: User, @Body() contributeFundsDto: ContributeFundsDto) {
-    
+
     const responseMessage = await this.savingsGroupService.contriubeFundsToGroup(user, contributeFundsDto);
 
     return new SuccessResponse(200, responseMessage)
@@ -174,27 +173,57 @@ export class SavingsGroupController {
     description: 'An Internal Error Occurred while processing the request'
   })
   async findByName(@Query('name') name: string, @UserDecorator() user: User) {
-    
+
     const responseData = await this.savingsGroupService.findByName(name, user);
 
     return new SuccessResponse(200, 'Savings Group Retrieved By Name', responseData);
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+  @UseGuards(FeatureFlagGuard('update-savings-group'))   // Experimental Feature
   @ApiOperation({
-    description: 'Updates a Savings Group, NOT YET COMPLETE'
+    description: 'Updates a Savings Group'
   })
-  update(@Param('id') id: string, @Body() updateSavingsGroupDto: UpdateSavingsGroupDto) {
-    return this.savingsGroupService.update(+id, updateSavingsGroupDto);
+  @ApiOkResponse({
+    description: 'Savings Update Successful'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiConflictResponse({
+    description: 'Savings Group with similar name exists'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  update(
+    @Param('id') id: string,
+    @Body() updateSavingsGroupDto: UpdateSavingsGroupDto,
+    @UserDecorator() user: User
+  ) {
+    return this.savingsGroupService.update(id, updateSavingsGroupDto, user);
   }
 
   @Delete(':id')
   @ApiOperation({
-    description: 'Deletes a Savings Group, NOT YET COMPLETE'
+    description: 'Deletes a Savings Group'
   })
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
-  remove(@Param('id') id: string) {
-    return this.savingsGroupService.remove(+id);
+  @ApiOkResponse({
+    description: 'Savings Group Deleted'
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Access Token supplied with the request has expired or is invalid'
+  })
+  @ApiForbiddenResponse({
+    description: 'User does not have the Required Permission for the requested operation'
+  })
+  @ApiInternalServerErrorResponse({
+    description: 'An Internal Error Occurred while processing the request'
+  })
+  remove(@Param('id') id: string, @UserDecorator() user: User) {
+    return this.savingsGroupService.remove(id, user);
   }
 }

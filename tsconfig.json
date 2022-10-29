@@ -20,6 +20,7 @@
     "paths": {
       "@*": ["*"],
       "@account/*": ["src/account/*"],
+      "@admin/*": ["src/admin/*"],
       "@api-services/*": ["src/api-services/*"],
       "@auth/*": ["src/auth/*"],
       "@business/*": ["src/business/*"],

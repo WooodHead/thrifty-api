@@ -247,11 +247,54 @@ export class SavingsGroupService {
     }
   }
 
-  update(id: number, updateSavingsGroupDto: UpdateSavingsGroupDto) {
-    return `This action updates a #${id} savingsGroup`;
+  async update(id: string, updateSavingsGroupDto: UpdateSavingsGroupDto, adminUser: User) {
+    try {
+
+      const updateSavingsGroup = await this.savingsGroupRepository.update({
+        id,
+        groupAdmin: {
+          id: adminUser.id
+        }
+      }, updateSavingsGroupDto);
+
+      if (!updateSavingsGroup.affected) {
+        throw new ForbiddenException();
+      }
+
+    } catch (error) {
+
+      if (error?.code === PostgresErrorCodes.UniqueViolation) {
+        throw new ConflictException(
+          'Feature flag with that name already exists'
+        );
+      }
+
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} savingsGroup`;
+  async remove(id: string, adminUser: User) {
+    try {
+
+      const deleteSvingsGroup = await this.savingsGroupRepository.delete({
+        id,
+        groupAdmin: {
+          id: adminUser.id
+        }
+      });
+
+      if (!deleteSvingsGroup.affected) {
+        throw new ForbiddenException();
+      }
+
+    } catch (error) {
+      throw new HttpException(
+        error.message ?? 'SOMETHING WENT WRONG',
+        error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

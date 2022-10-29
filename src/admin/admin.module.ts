@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { HttpModule } from '@nestjs/axios';
 import { AdminService } from './admin.service';
@@ -17,7 +17,7 @@ import { SavingsGroupModule } from '@savings-group/savings-group.module';
     AccountModule,
     UserModule,
     TransactionModule,
-    SavingsGroupModule,
+    forwardRef(() => SavingsGroupModule),
     HttpModule.registerAsync({
       useFactory: () => ({
         timeout: 10000,
@@ -26,6 +26,7 @@ import { SavingsGroupModule } from '@savings-group/savings-group.module';
     }),
     TypeOrmModule.forFeature([FeatureFlag]),
   ],
+  exports: [FeatureFlagService],
   controllers: [AdminController],
   providers: [AdminService, BillPaymentService, FeatureFlagService]
 })
