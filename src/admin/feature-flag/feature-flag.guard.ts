@@ -20,9 +20,9 @@ export const FeatureFlagGuard = (featureFlagName: string): Type<CanActivate> => 
 
             if (isEnabled) return true
 
-            const httpContext = context.switchToHttp();
-            const request = httpContext.getRequest();
-            throw new NotFoundException(`Cannot Find Route: ${request.method} ${request.url}`);
+            const request = context.switchToHttp().getRequest();
+
+            throw new NotFoundException(`Cannot ${request.method} ${request.url}`);
 
         }
     }
