@@ -1,14 +1,25 @@
 import { NestFactory, Reflector } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { SwaggerModule, DocumentBuilder, SwaggerDocumentOptions } from '@nestjs/swagger';
-import { ClassSerializerInterceptor, HttpException, HttpStatus, ValidationPipe, VersioningType } from '@nestjs/common';
+import {
+  SwaggerModule,
+  DocumentBuilder,
+  SwaggerDocumentOptions
+} from '@nestjs/swagger';
+import {
+  ClassSerializerInterceptor,
+  HttpException,
+  HttpStatus,
+  ValidationPipe,
+  VersioningType
+} from '@nestjs/common';
 import { SwaggerCustomOptions } from './global';
-import { ConfigService } from '@nestjs/config';
 import configuration from './config/configuration';
+
 const configService = new ConfigService(configuration);
 
 async function bootstrap() {
@@ -44,7 +55,7 @@ async function bootstrap() {
     .addCookieAuth('cookieAuth', { type: 'http', in: 'signedCookies', scheme: 'Bearer', name: 'jit' })
     .addServer('https://api-thrifty.herokuapp.com/v1', 'Main (production) Server')
     .addServer('http://localhost:3000/v1', 'Localhost Server')
-    .setContact('Lekan Adetunmbi', 'https://pollaroid.net', 'me@pollaroid.net')
+    .setContact('Lekan Adetunmbi', 'https://pollaroid.net', 'greazleay@aol.com')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .setTitle('Thrifty API')
     .setDescription('A Fictional Financial Services Provider which offers traditonal financial services and some other value-added services')

@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -41,6 +42,7 @@ export class SavingsGroupController {
   constructor(private readonly savingsGroupService: SavingsGroupService) { }
 
   @Post()
+  @HttpCode(201)
   @ApiOperation({
     description: 'Creates a new Savings Group and adds the user making the request as the Savings Group Admin'
   })
