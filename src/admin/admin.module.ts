@@ -5,7 +5,7 @@ import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { AccountModule } from '@account/account.module';
 import { UserModule } from '@user/user.module';
-import { BillPaymentService } from '@services/bill-payment/bill-payment.service';
+import { BillPaymentService } from '@src/api-services/bill-payment/bill-payment.service';
 import { TransactionModule } from '@transaction/transaction.module';
 import { FeatureFlag } from './entities/featureFlag.entity';
 import { FeatureFlagService } from './feature-flag/feature-flag.service';

@@ -1,4 +1,4 @@
-import { CacheModule, Module } from '@nestjs/common';
+import { CacheModule, Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DefaultAdminModule, AdminUserEntity } from 'nestjs-admin';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -23,6 +23,8 @@ import { ResetCode } from './auth/entities/resetCode.entity';
 import { HttpCacheInterceptor } from './common/interceptors/http-cache-interceptor';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdminModule } from './admin/admin.module';
+import { LoggerModule } from './logger/logger.module';
+import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import configuration from './config/configuration';
 
 
@@ -95,7 +97,8 @@ import configuration from './config/configuration';
     SavingsGroupModule,
     AccountModule,
     TransactionModule,
-    AdminModule
+    AdminModule,
+    LoggerModule
   ],
   controllers: [AppController],
   providers: [
@@ -110,8 +113,14 @@ import configuration from './config/configuration';
     }
   ],
 })
-export class AppModule {
+export class AppModule implements NestModule {
 
   constructor(private dataSource: DataSource) { }
+
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes('*');
+  }
 
 }

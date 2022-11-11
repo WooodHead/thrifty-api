@@ -1,10 +1,8 @@
 import {
     BadRequestException,
-    ForbiddenException,
     HttpException,
     HttpStatus,
     Injectable,
-    NotFoundException,
     UnauthorizedException
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,11 +11,12 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { UserService } from '@user/user.service';
-import { EmailService } from '@services/email/email.service';
+import { EmailService } from '@api-services/email/email.service';
+import { WinstonLogger } from '@logger/winston-logger/winston-logger.service';
 import { User } from '@user/entities/user.entity';
 import { ChangePasswordDto, ResetPasswordDto } from './dto/auth.dto';
-import { SendMailOptions } from '@services/email/interfaces/email.interface';
-import { getVerificationEmailTemplate } from '@services/email/templates/verificationCode';
+import { SendMailOptions } from '@api-services/email/interfaces/email.interface';
+import { getVerificationEmailTemplate } from '@api-services/email/templates/verificationCode';
 import { ResetCode } from './entities/resetCode.entity';
 
 
@@ -28,9 +27,12 @@ export class AuthService {
         private jwtService: JwtService,
         private readonly configService: ConfigService,
         private readonly emailService: EmailService,
+        private readonly logger: WinstonLogger,
         @InjectRepository(User) private readonly usersRepository: Repository<User>,
         @InjectRepository(ResetCode) private readonly resetCodeRepository: Repository<ResetCode>,
-    ) { }
+    ) { 
+        this.logger.setContext(AuthService.name)
+    }
 
     async validateUser(email: string, pass: string): Promise<User> {
         try {
@@ -46,6 +48,7 @@ export class AuthService {
             throw new UnauthorizedException('Invalid Credentials');
 
         } catch (error) {
+            this.logger.error(JSON.stringify(error))
             throw new HttpException(
                 error.message ?? 'SOMETHING WENT WRONG',
                 error.status ?? HttpStatus.INTERNAL_SERVER_ERROR,

@@ -23,8 +23,8 @@ import {
 import { User } from '@user/entities/user.entity';
 import { Account } from './entities/account.entity';
 import { Transaction } from '@transaction/entities/transaction.entity';
-import { BillPaymentService } from '@services/bill-payment/bill-payment.service';
-import { PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+import { BillPaymentService } from '@src/api-services/bill-payment/bill-payment.service';
+import { PayBillsDto } from '@src/api-services/bill-payment/dto/bill-payment.dto';
 import { generateTransactionRef } from '@utils/generateTrsnactionRef';
 
 

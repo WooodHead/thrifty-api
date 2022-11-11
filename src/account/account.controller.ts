@@ -36,7 +36,7 @@ import {
   TransferFundsToExternalDto
 } from './dto/common-account.dto';
 import { JwtAuthGuard } from '@auth/guards/jwt-auth.guard';
-import { PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+import { PayBillsDto } from '@src/api-services/bill-payment/dto/bill-payment.dto';
 import { SuccessResponse } from '@utils/successResponse';
 
 

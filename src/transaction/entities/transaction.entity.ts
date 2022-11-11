@@ -11,7 +11,7 @@ import {
   IGenIntTxParams,
   IGenBillTxParams
 } from '../interfaces/transaction.interface';
-import { PayBillsDto } from '@services/bill-payment/dto/bill-payment.dto';
+import { PayBillsDto } from '@src/api-services/bill-payment/dto/bill-payment.dto';
 
 
 @Entity()

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DefaultAdminModule } from 'nestjs-admin';
 import { AuthService } from './auth.service';
+import { LoggerModule } from '@logger/logger.module';
 import { UserModule } from '../user/user.module';
 import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
@@ -9,12 +10,13 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthController } from './auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config'
-import { EmailService } from '@services/email/email.service';
+import { EmailService } from '@src/api-services/email/email.service';
 import { ResetCode } from './entities/resetCode.entity';
 
 
 @Module({
   imports: [
+    LoggerModule,
     UserModule,
     PassportModule.register({
       session: false,

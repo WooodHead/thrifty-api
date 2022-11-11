@@ -1,5 +1,5 @@
 export default () => ({
-    PORT: process.env.PORT ?? 3000,
+    PORT: process.env.PORT ?? 4000,
     DB_HOST: process.env.TYPEORM_HOST,
     DB_PORT: process.env.TYPEORM_PORT,
     DB_USERNAME: process.env.TYPEORM_USERNAME,
@@ -24,6 +24,7 @@ export default () => ({
     FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
     FIREBASE_CREDENTIALS: process.env.FIREBASE_CREDENTIALS,
+    LOGTAIL_SOURCE_TOKEN: process.env.LOGTAIL_SOURCE_TOKEN,
 
     // Third party payment services
     FLUTTERWAVE_SECRET_KEY: process.env.FLUTTERWAVE_SECRET_KEY,
