@@ -25,6 +25,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdminModule } from './admin/admin.module';
 import { LoggerModule } from './logger/logger.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { HealthModule } from './health/health.module';
 import configuration from './config/configuration';
 
 
@@ -59,7 +60,8 @@ import configuration from './config/configuration';
         synchronize: false,
         ssl: {
           rejectUnauthorized: false
-        }
+        },
+        connectTimeoutMS: 2000
       }),
       inject: [ConfigService]
     }),
@@ -98,7 +100,8 @@ import configuration from './config/configuration';
     AccountModule,
     TransactionModule,
     AdminModule,
-    LoggerModule
+    LoggerModule,
+    HealthModule
   ],
   controllers: [AppController],
   providers: [
