@@ -1,21 +1,21 @@
 import {
-    BaseEntity,
-    CreateDateColumn,
-    PrimaryGeneratedColumn,
-    UpdateDateColumn,
-    VersionColumn
-} from 'typeorm';
+  BaseEntity,
+  CreateDateColumn,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  VersionColumn,
+} from "typeorm";
 
 export abstract class AbstractEntity extends BaseEntity {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @VersionColumn()
-    version: number;
+  @VersionColumn()
+  version: number;
 }

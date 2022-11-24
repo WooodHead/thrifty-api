@@ -1,5 +1,9 @@
-export const getVerificationEmailTemplate = (firstName: string, lastName: string, verificationCode: string) => {
-    return `<td class="esd-stripe" style="background-color: #fafafa;" bgcolor="#fafafa" align="center">
+export const getVerificationEmailTemplate = (
+  firstName: string,
+  lastName: string,
+  verificationCode: string
+) => {
+  return `<td class="esd-stripe" style="background-color: #fafafa;" bgcolor="#fafafa" align="center">
     <table class="es-content-body" style="background-color: #ffffff;" width="600" cellspacing="0" cellpadding="0" bgcolor="#ffffff" align="center">
         <tbody>
             <tr>
@@ -133,5 +137,5 @@ export const getVerificationEmailTemplate = (firstName: string, lastName: string
             </tr>
         </tbody>
     </table>
-</td>`
-}
+</td>`;
+};

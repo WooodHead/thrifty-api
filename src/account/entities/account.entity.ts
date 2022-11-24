@@ -1,66 +1,65 @@
+import { Entity, Column, OneToMany, ManyToMany, JoinTable } from "typeorm";
+import { AbstractEntity } from "@common/entities/abstract.entity";
+import { User } from "@user/entities/user.entity";
+import { Transaction } from "@transaction/entities/transaction.entity";
 import {
-    Entity,
-    Column,
-    OneToMany,
-    ManyToMany,
-    JoinTable
-} from 'typeorm';
-import { AbstractEntity } from '@common/entities/abstract.entity';
-import { User } from '@user/entities/user.entity';
-import { Transaction } from '@transaction/entities/transaction.entity';
-import { AccountStatus, AccountType, AccountCurrency } from '../interfaces/account.interface';
+  AccountStatus,
+  AccountType,
+  AccountCurrency,
+} from "../interfaces/account.interface";
 
 @Entity()
 export class Account extends AbstractEntity {
+  @Column("int", { unique: true })
+  accountNumber: number;
 
-    @Column('int', { unique: true })
-    accountNumber: number;
+  @Column("varchar")
+  accountName: string;
 
-    @Column('varchar')
-    accountName: string
+  @Column("enum", {
+    enum: AccountType,
+    default: AccountType.INDIVIDUAL_SAVINGS,
+  })
+  accountType: AccountType;
 
-    @Column('enum', { enum: AccountType, default: AccountType.INDIVIDUAL_SAVINGS })
-    accountType: AccountType;
+  @Column("enum", { enum: AccountCurrency, default: AccountCurrency.NGN })
+  accountCurrency: AccountCurrency;
 
-    @Column('enum', { enum: AccountCurrency, default: AccountCurrency.NGN })
-    accountCurrency: AccountCurrency
+  @Column("enum", { enum: AccountStatus, default: AccountStatus.ACTIVE })
+  accountStatus: AccountStatus;
 
-    @Column('enum', { enum: AccountStatus, default: AccountStatus.ACTIVE })
-    accountStatus: AccountStatus;
+  @Column("decimal", { precision: 15, scale: 2, default: 0 })
+  accountBalance: number;
 
-    @Column('decimal', { precision: 15, scale: 2, default: 0 })
-    accountBalance: number;
+  @Column("decimal", { precision: 15, scale: 2, default: 0 })
+  bookBalance: number;
 
-    @Column('decimal', { precision: 15, scale: 2, default: 0 })
-    bookBalance: number;
+  @ManyToMany(() => User, (user) => user.accounts)
+  @JoinTable()
+  accountHolders: User[];
 
-    @ManyToMany(() => User, user => user.accounts)
-    @JoinTable()
-    accountHolders: User[]
+  @OneToMany(() => Transaction, (transactions) => transactions.account)
+  transactions: Transaction[];
 
-    @OneToMany(() => Transaction, (transactions) => transactions.account)
-    transactions: Transaction[];
+  public genAcctNum(accountNumbers: number[]) {
+    let accountNumber: number =
+      1000000000 + Math.floor(Math.random() * 1000000000);
 
-    public genAcctNum(accountNumbers: number[]) {
+    if (accountNumbers.indexOf(accountNumber) !== -1) {
+      accountNumber = this.genAcctNum(accountNumbers);
+    }
 
-        let accountNumber: number = 1000000000 + Math.floor(Math.random() * 1000000000);
+    return accountNumber;
+  }
 
-        if (accountNumbers.indexOf(accountNumber) !== -1) {
-            accountNumber = this.genAcctNum(accountNumbers)
-        }
+  public generateAccountNumber(accountNumbers: number[]) {
+    let accountNumber: number =
+      1000000000 + Math.floor(Math.random() * 1000000000);
 
-        return accountNumber;
+    while (accountNumbers.indexOf(accountNumber) !== -1) {
+      accountNumber = 1000000000 + Math.floor(Math.random() * 1000000000);
+    }
 
-    };
-
-    public generateAccountNumber(accountNumbers: number[]) {
-
-        let accountNumber: number = 1000000000 + Math.floor(Math.random() * 1000000000);
-
-        while (accountNumbers.indexOf(accountNumber) !== -1) {
-            accountNumber = 1000000000 + Math.floor(Math.random() * 1000000000);
-        }
-
-        return accountNumber;
-    };
+    return accountNumber;
+  }
 }

@@ -1,4 +1,4 @@
 export enum GroupType {
-    PUBLIC = "Public",
-    PRIVATE = "Private"
-};
+  PUBLIC = "Public",
+  PRIVATE = "Private",
+}

@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { ApiProperty } from "@nestjs/swagger";
+import { Type } from "class-transformer";
 import {
   IsEnum,
   IsNotEmpty,
@@ -10,14 +10,21 @@ import {
   Length,
   MinLength,
   ValidateNested,
-} from 'class-validator';
-import { TransactionMode, TransactionStatus, TransactionType } from '../interfaces/transaction.interface';
-import { User } from '../../user/entities/user.entity';
-import { Account } from '../../account/entities/account.entity';
+} from "class-validator";
+import {
+  TransactionMode,
+  TransactionStatus,
+  TransactionType,
+} from "../interfaces/transaction.interface";
+import { User } from "../../user/entities/user.entity";
+import { Account } from "../../account/entities/account.entity";
 
 export class ExternalAccountDto {
   @IsString()
-  @Length(10, 10, { message: 'Invalid Account Number: Outgoing Account Number must be 10 characters long' })
+  @Length(10, 10, {
+    message:
+      "Invalid Account Number: Outgoing Account Number must be 10 characters long",
+  })
   @IsNotEmpty()
   accountNumber: number;
 

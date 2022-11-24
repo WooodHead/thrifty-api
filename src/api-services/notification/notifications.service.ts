@@ -1,11 +1,11 @@
-import { HttpException, Injectable } from '@nestjs/common';
-import { InjectFirebaseAdmin, FirebaseAdmin } from 'nestjs-firebase';
-import { Message } from 'firebase-admin/messaging';
+import { HttpException, Injectable } from "@nestjs/common";
+import { InjectFirebaseAdmin, FirebaseAdmin } from "nestjs-firebase";
+import { Message } from "firebase-admin/messaging";
 
 @Injectable()
 export class NotificationsService {
   constructor(
-    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin,
+    @InjectFirebaseAdmin() private readonly firebase: FirebaseAdmin
   ) {}
 
   public async sendNotification(message: Message) {
@@ -15,8 +15,8 @@ export class NotificationsService {
     } catch (error) {
       console.log(error);
       throw new HttpException(
-        error.message ?? 'SOMETHING WENT WRONG',
-        error.status ?? 500,
+        error.message ?? "SOMETHING WENT WRONG",
+        error.status ?? 500
       );
     }
   }
