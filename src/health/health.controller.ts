@@ -5,6 +5,7 @@ import {
   HealthCheck,
   TypeOrmHealthIndicator,
 } from "@nestjs/terminus";
+import { SkipAuth } from "@auth/decorators/skip-auth.decorator";
 
 @Controller("health")
 export class HealthController {
@@ -16,6 +17,7 @@ export class HealthController {
 
   @Get()
   @HealthCheck()
+  @SkipAuth()
   check() {
     return this.health.check([
       () => this.http.pingCheck("nestjs-docs", "https://docs.nestjs.com"),

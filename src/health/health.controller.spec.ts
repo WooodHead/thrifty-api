@@ -1,4 +1,10 @@
+import {
+  HealthCheckService,
+  HttpHealthIndicator,
+  TypeOrmHealthIndicator,
+} from "@nestjs/terminus";
 import { Test, TestingModule } from "@nestjs/testing";
+import { createMock } from "@golevelup/ts-jest";
 import { HealthController } from "./health.controller";
 
 describe("HealthController", () => {
@@ -7,6 +13,20 @@ describe("HealthController", () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
+      providers: [
+        {
+          provide: HealthCheckService,
+          useValue: createMock<HealthCheckService>(),
+        },
+        {
+          provide: HttpHealthIndicator,
+          useValue: createMock<HttpHealthIndicator>(),
+        },
+        {
+          provide: TypeOrmHealthIndicator,
+          useValue: createMock<TypeOrmHealthIndicator>(),
+        },
+      ],
     }).compile();
 
     controller = module.get<HealthController>(HealthController);

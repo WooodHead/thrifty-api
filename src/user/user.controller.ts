@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  UseGuards,
 } from "@nestjs/common";
 import {
   ApiTags,
@@ -22,12 +21,11 @@ import {
 } from "@nestjs/swagger";
 import { UserService } from "./user.service";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { JwtAuthGuard } from "@auth/guards/jwt-auth.guard";
 import { UserDecorator } from "./decorators/user.decorator";
 import { Role } from "./interfaces/user.interface";
-import { RoleGuard } from "@auth/guards/roles.guard";
 import { SuccessResponse } from "@utils/successResponse";
 import { UpdateUserDto } from "./dto/update-user.dto";
+import { Roles } from "@auth/decorators/role.decorator";
 
 @Controller("users")
 @ApiTags("User")
@@ -70,7 +68,7 @@ export class UserController {
   @ApiInternalServerErrorResponse({
     description: "An Internal Error Occurred while processing the request",
   })
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @Roles(Role.USER)
   async findOne(@UserDecorator("id") id: string) {
     const responseData = await this.usersService.findOneById(id);
 
@@ -78,7 +76,7 @@ export class UserController {
   }
 
   @Patch(":id")
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @Roles(Role.USER)
   @ApiBearerAuth()
   @ApiOperation({
     description: "Updates the current authenticated user basic info",
@@ -103,7 +101,7 @@ export class UserController {
   }
 
   @Delete(":id")
-  @UseGuards(JwtAuthGuard, RoleGuard(Role.USER))
+  @Roles(Role.USER)
   @ApiBearerAuth()
   @ApiOperation({
     description: "Deletes the current authenticated User",

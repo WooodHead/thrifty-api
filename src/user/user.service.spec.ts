@@ -1,4 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { getRepositoryToken } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { createMock } from "@golevelup/ts-jest";
+import { User } from "./entities/user.entity";
 import { UserService } from "./user.service";
 
 describe("UserService", () => {
@@ -6,7 +10,13 @@ describe("UserService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService],
+      providers: [
+        UserService,
+        {
+          provide: getRepositoryToken(User),
+          useValue: createMock<Repository<User>>(),
+        },
+      ],
     }).compile();
 
     service = module.get<UserService>(UserService);

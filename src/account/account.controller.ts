@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
@@ -35,12 +34,10 @@ import {
   TransferFundsToInternalDto,
   TransferFundsToExternalDto,
 } from "./dto/common-account.dto";
-import { JwtAuthGuard } from "@auth/guards/jwt-auth.guard";
-import { PayBillsDto } from "@src/api-services/bill-payment/dto/bill-payment.dto";
+import { PayBillsDto } from "@api-services/bill-payment/dto/bill-payment.dto";
 import { SuccessResponse } from "@utils/successResponse";
 
 @Controller("accounts")
-@UseGuards(JwtAuthGuard)
 @ApiTags("Account")
 @ApiBearerAuth()
 export class AccountController {
@@ -62,7 +59,6 @@ export class AccountController {
   @ApiInternalServerErrorResponse({
     description: "An Internal Error Occurred while processing the request",
   })
-  @UseGuards(JwtAuthGuard)
   async findAccountByUser(
     @Query() query: PaginateQuery,
     @UserDecorator("id") id: string

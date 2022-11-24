@@ -32,6 +32,8 @@ import { LoggerModule } from "./logger/logger.module";
 import { LoggerMiddleware } from "./common/middleware/logger.middleware";
 import { HealthModule } from "./health/health.module";
 import configuration from "./config/configuration";
+import { JwtAuthGuard } from "./auth/guards/jwt-auth.guard";
+import { RolesGuard } from "./auth/guards/roles.guard";
 
 @Module({
   imports: [
@@ -118,6 +120,14 @@ import configuration from "./config/configuration";
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
     },
   ],
 })

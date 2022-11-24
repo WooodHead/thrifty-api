@@ -9,7 +9,7 @@ describe("WinstonLoggerService", () => {
       providers: [WinstonLogger],
     }).compile();
 
-    service = module.get<WinstonLogger>(WinstonLogger);
+    service = await module.resolve<WinstonLogger>(WinstonLogger);
   });
 
   it("should be defined", () => {

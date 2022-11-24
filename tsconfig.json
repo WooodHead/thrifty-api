@@ -19,18 +19,17 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@*": ["*"],
+      "@/*": ["src/*"],
       "@account/*": ["src/account/*"],
       "@admin/*": ["src/admin/*"],
       "@api-services/*": ["src/api-services/*"],
       "@auth/*": ["src/auth/*"],
-      "@business/*": ["src/business/*"],
       "@common/*": ["src/common/*"],
       "@config/*": ["src/config/*"],
       "@logger/*": ["src/logger/*"],
       "@savings-group/*": ["src/savings-group/*"],
       "@transaction/*": ["src/transaction/*"],
       "@user/*": ["src/user/*"],
-      "@/*": ["src/*"],
       "@utils/*": ["src/utils/*"]
     }
   }

@@ -27,7 +27,6 @@ import { LocalAuthGuard } from "./guards/local-auth.guard";
 import { AuthService } from "./auth.service";
 import { UserDecorator } from "@user/decorators/user.decorator";
 import { User } from "@user/entities/user.entity";
-import { JwtAuthGuard } from "./guards/jwt-auth.guard";
 import { cookieOptions } from "./constants/auth.constant";
 import { LoginUserDto } from "./dto/login-user.dto";
 import { SuccessResponse } from "@utils/successResponse";
@@ -36,6 +35,7 @@ import {
   ValidEmailDto,
   ResetPasswordDto,
 } from "./dto/auth.dto";
+import { SkipAuth } from "./decorators/skip-auth.decorator";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -60,6 +60,7 @@ export class AuthController {
       "An Internal Server Error occured while processing the request",
   })
   @HttpCode(200)
+  @SkipAuth()
   @UseGuards(LocalAuthGuard)
   async login(
     @UserDecorator() user: User,
@@ -87,7 +88,6 @@ export class AuthController {
     description:
       "An Internal Server Error occured while processing the request",
   })
-  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   async logout(
     @UserDecorator() user: User,
@@ -194,7 +194,6 @@ export class AuthController {
     description: "An Internal Error Occurred while processing the request",
   })
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
   async changePassword(
     @UserDecorator("id") id: string,
     @Body() changePasswordDto: ChangePasswordDto

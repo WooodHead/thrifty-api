@@ -26,7 +26,6 @@ import {
 import { SavingsGroupService } from "./savings-group.service";
 import { CreateSavingsGroupDto } from "./dto/create-savings-group.dto";
 import { UpdateSavingsGroupDto } from "./dto/update-savings-group.dto";
-import { JwtAuthGuard } from "@auth/guards/jwt-auth.guard";
 import { UserDecorator } from "@user/decorators/user.decorator";
 import { User } from "@user/entities/user.entity";
 import {
@@ -37,7 +36,6 @@ import { SuccessResponse } from "@utils/successResponse";
 import { FeatureFlagGuard } from "@admin/feature-flag/feature-flag.guard";
 
 @Controller("savings-groups")
-@UseGuards(JwtAuthGuard)
 @ApiTags("Savings Group")
 @ApiBearerAuth()
 export class SavingsGroupController {

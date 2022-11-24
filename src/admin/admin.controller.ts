@@ -28,8 +28,8 @@ import { Role } from "@user/interfaces/user.interface";
 import { SuccessResponse } from "@utils/successResponse";
 import { PaginateQuery } from "nestjs-paginate";
 import { AdminService } from "./admin.service";
-import { BillPaymentService } from "@src/api-services/bill-payment/bill-payment.service";
-import { BillCategoryDto } from "@src/api-services/bill-payment/dto/bill-payment.dto";
+import { BillPaymentService } from "@api-services/bill-payment/bill-payment.service";
+import { BillCategoryDto } from "@api-services/bill-payment/dto/bill-payment.dto";
 import { EntityIdDto } from "./dto/admin.dto";
 import { FeatureFlagService } from "./feature-flag/feature-flag.service";
 import {
@@ -40,9 +40,10 @@ import {
   TransactionDateDto,
   TransactionDateRangeDto,
 } from "@transaction/dto/common-transaction.dto";
+import { Roles } from "@auth/decorators/role.decorator";
 
 @Controller("admin")
-@UseGuards(JwtAuthGuard, RoleGuard(Role.ADMIN))
+@Roles(Role.ADMIN)
 @ApiTags("Admin")
 @ApiBearerAuth()
 export class AdminController {

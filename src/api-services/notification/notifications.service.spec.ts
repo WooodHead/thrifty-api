@@ -6,7 +6,13 @@ describe("NotificationsService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [NotificationsService],
+      providers: [
+        NotificationsService,
+        {
+          provide: "FIREBASE_TOKEN",
+          useValue: "any",
+        },
+      ],
     }).compile();
 
     service = module.get<NotificationsService>(NotificationsService);

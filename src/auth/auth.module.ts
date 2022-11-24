@@ -10,7 +10,7 @@ import { JwtStrategy } from "./strategies/jwt.strategy";
 import { JwtModule } from "@nestjs/jwt";
 import { AuthController } from "./auth.controller";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { EmailService } from "@src/api-services/email/email.service";
+import { EmailService } from "@api-services/email/email.service";
 import { ResetCode } from "./entities/resetCode.entity";
 
 @Module({

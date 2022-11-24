@@ -7,7 +7,7 @@ import { AccountController } from "./account.controller";
 import { Account } from "./entities/account.entity";
 import { TransactionModule } from "@transaction/transaction.module";
 import { UserModule } from "@user/user.module";
-import { BillPaymentService } from "@src/api-services/bill-payment/bill-payment.service";
+import { BillPaymentService } from "@api-services/bill-payment/bill-payment.service";
 
 @Module({
   imports: [

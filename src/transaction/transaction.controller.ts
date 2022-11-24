@@ -1,18 +1,8 @@
+import { Body, Controller, Get, Param, Patch, Query } from "@nestjs/common";
 import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Query,
-  UseGuards,
-} from "@nestjs/common";
-import {
-  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiForbiddenResponse,
   ApiInternalServerErrorResponse,
-  ApiNotFoundResponse,
   ApiOkResponse,
   ApiOperation,
   ApiTags,
@@ -21,7 +11,6 @@ import {
 import { PaginateQuery } from "nestjs-paginate";
 import { TransactionService } from "./transaction.service";
 import { UpdateTransactionDto } from "./dto/update-transaction.dto";
-import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { UserDecorator } from "../user/decorators/user.decorator";
 import {
   AccountIdDto,
@@ -31,8 +20,6 @@ import {
   TransactionAccountDateRangeDto,
   TransactionIdDto,
 } from "./dto/common-transaction.dto";
-import { RoleGuard } from "../auth/guards/roles.guard";
-import { Role } from "../user/interfaces/user.interface";
 import { SuccessResponse } from "../utils/successResponse";
 
 @Controller("transactions")
@@ -42,7 +29,6 @@ export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Get("user")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description:
       "Returns All Transactions By an Authenticated User. Request can be paginated",
@@ -68,7 +54,6 @@ export class TransactionController {
   }
 
   @Get("user/:searchDate")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description:
       "Returns All Transactions By an Authenticated User on a given date. Request can be paginated",
@@ -103,7 +88,6 @@ export class TransactionController {
   }
 
   @Get("user/date-range")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description:
       "Returns All Transactions By an Authenticated User within a given date range. Request can be paginated",
@@ -138,7 +122,6 @@ export class TransactionController {
   }
 
   @Get("account")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `Returns All Transactions done by the authenticated on a given Account by the Account ID, 
     only Users with Admin Privileges can make a successful request to this endpoint. 
@@ -180,7 +163,6 @@ export class TransactionController {
   }
 
   @Get("account/date")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `Returns All Transactions done by the authenticated on a given Account by the Account ID on a given date, 
     Request can be paginated`,
@@ -219,7 +201,6 @@ export class TransactionController {
   }
 
   @Get("account/date-range")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: `Returns All Transactions done by the authenticated on a given Account by the Account ID and by a given date range. 
     Request can be paginated`,
@@ -259,7 +240,6 @@ export class TransactionController {
   }
 
   @Patch(":id")
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({
     description: "Updates a Transaction, NOT YET COMPLETE",
   })
